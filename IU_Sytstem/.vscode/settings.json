@@ -1,0 +1,19 @@
+{
+  "python.defaultInterpreterPath": "/usr/local/bin/python",
+  "docker.composeFile": "${workspaceFolder}/docker-compose.yml",
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/node_modules": true
+  },
+  "editor.formatOnSave": true,
+  "python-envs.pythonProjects": [
+    {
+      "path": "backend",
+      "envManager": "ms-python.python:venv",
+      "packageManager": "ms-python.python:pip"
+    }
+  ],
+  "typescript.tsdk": "frontend/node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
+}

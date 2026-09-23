@@ -1,0 +1,11 @@
+Django>=5.2
+djangorestframework
+psycopg2-binary
+python-dotenv
+django-cors-headers
+djangorestframework-simplejwt
+django-redis
+redis
+reportlab
+openpyxl
+gunicorn

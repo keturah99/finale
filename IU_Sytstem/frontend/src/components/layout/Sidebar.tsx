@@ -1,0 +1,68 @@
+import { NavLink } from 'react-router-dom'
+import {
+  LayoutDashboard, Package, Truck, Wallet, Store, BarChart3,
+  Users, Warehouse, ClipboardList,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { useRole } from '@/hooks/useRole'
+
+interface NavItem {
+  label: string
+  to: string
+  icon: React.ComponentType<{ className?: string }>
+  roles?: string[]
+}
+
+const NAV: NavItem[] = [
+  { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
+  { label: 'Inventory', to: '/inventory', icon: Package,
+    roles: ['inventory_manager', 'inventory_clerk'] },
+  { label: 'Supply Chain', to: '/supply-chain', icon: Warehouse,
+    roles: ['supply_chain_officer'] },
+  { label: 'Transport', to: '/transport', icon: Truck,
+    roles: ['transport_manager', 'transport_clerk'] },
+  { label: 'Wholesale', to: '/wholesale', icon: Store,
+    roles: ['wholesale_manager', 'wholesale_clerk', 'cashier'] },
+  { label: 'Payroll', to: '/payroll', icon: Wallet,
+    roles: ['payroll_officer'] },
+  { label: 'Reporting', to: '/reporting', icon: BarChart3,
+    roles: ['reporting_analyst', 'inventory_manager', 'transport_manager',
+            'supply_chain_officer', 'wholesale_manager', 'payroll_officer'] },
+  { label: 'Admin', to: '/admin', icon: Users },
+]
+
+export function Sidebar() {
+  const { hasAnyRole, isSuperuser } = useRole()
+
+  return (
+    <aside className="hidden w-60 flex-col border-r border-slate-200 bg-white md:flex">
+      <div className="flex h-16 items-center gap-2 border-b border-slate-200 px-5">
+        <ClipboardList className="h-6 w-6 text-brand-500" />
+        <span className="font-semibold text-slate-800">IU System</span>
+      </div>
+      <nav className="flex-1 space-y-1 p-3">
+        {NAV.filter((item) => {
+          if (item.to === '/admin') return isSuperuser
+          if (!item.roles) return true
+          return isSuperuser || hasAnyRole(item.roles)
+        }).map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) =>
+              cn(
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition',
+                isActive
+                  ? 'bg-brand-50 text-brand-700'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+              )
+            }
+          >
+            <item.icon className="h-4 w-4" />
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+    </aside>
+  )
+}
