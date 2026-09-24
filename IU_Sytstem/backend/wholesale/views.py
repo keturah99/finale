@@ -30,7 +30,12 @@ from .serializers import (
     WeeklySalesDamageSerializer,
 )
 from .services import (
-    close_weekly_sales, close_and_open_next, assert_weekly_sales_open,
+    approve_transfer,
+    receive_transfer,
+    cancel_transfer,
+    close_weekly_sales,
+    close_and_open_next,
+    assert_weekly_sales_open,
 )
 
 READ_ROLES = [

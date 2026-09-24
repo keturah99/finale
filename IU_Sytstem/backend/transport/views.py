@@ -230,33 +230,30 @@ class TransportBookingViewSet(viewsets.ModelViewSet):
         if not vehicle_id:
             return Response({'error': 'vehicle_id is required'}, status=400)
 
-        try:
-            vehicle = Vehicle.objects.select_for_update().get(pk=vehicle_id)
-        except Vehicle.DoesNotExist:
-            return Response({'error': 'Vehicle not found'}, status=404)
-
-        if vehicle.status != 'available':
-            return Response(
-                {'error': f'Vehicle {vehicle.registration_number} is not available'},
-                status=400,
-            )
-
         cargo_t = Decimal(str(booking.cargo_weight_kg or 0)) / 1000
-        if Decimal(str(vehicle.tonnage)) < cargo_t:
-            # A semi could still be OK if trailers are attached, but the
-            # solo capacity must at least exist. Warn loudly if solo
-            # alone can't handle it — trailer requirement message follows.
-            if vehicle.vehicle_type != 'semi_truck':
+
+        with transaction.atomic():
+            try:
+                vehicle = Vehicle.objects.select_for_update().get(pk=vehicle_id)
+            except Vehicle.DoesNotExist:
+                return Response({'error': 'Vehicle not found'}, status=404)
+
+            if vehicle.status != 'available':
+                return Response(
+                    {'error': f'Vehicle {vehicle.registration_number} is not available'},
+                    status=400,
+                )
+
+            if (Decimal(str(vehicle.tonnage)) < cargo_t
+                    and vehicle.vehicle_type != 'semi_truck'):
                 return Response(
                     {'error': (
                         f'Vehicle tonnage ({vehicle.tonnage}t) is less than '
-                        f'cargo weight ({cargo_t:.2f}t) and it cannot pull '
-                        f'trailers.'
+                        f'cargo weight ({cargo_t:.2f}t) and it cannot pull trailers.'
                     )},
                     status=400,
                 )
 
-        with transaction.atomic():
             # Release any previous vehicle
             if booking.assigned_vehicle and booking.assigned_vehicle != vehicle:
                 booking.assigned_vehicle.status = 'available'
@@ -338,25 +335,26 @@ class TransportBookingViewSet(viewsets.ModelViewSet):
         if not driver_id:
             return Response({'error': 'driver_id is required'}, status=400)
 
-        try:
-            driver = Driver.objects.select_for_update().get(pk=driver_id)
-        except Driver.DoesNotExist:
-            return Response({'error': 'Driver not found'}, status=404)
-
-        if driver.status != 'available':
-            return Response(
-                {'error': f'Driver {driver} is not available'},
-                status=400,
-            )
-
         with transaction.atomic():
+            try:
+                driver = Driver.objects.select_for_update().get(pk=driver_id)
+            except Driver.DoesNotExist:
+                return Response({'error': 'Driver not found'}, status=404)
+
+            if driver.status != 'available':
+                return Response(
+                    {'error': f'Driver {driver} is not available'},
+                    status=400,
+                )
+
             # --- Case 1: vehicle already assigned ---
             if booking.assigned_vehicle:
-                ok, reason = is_driver_eligible(driver, booking.assigned_vehicle, booking)
+                ok, reason = is_driver_eligible(
+                    driver, booking.assigned_vehicle, booking
+                )
                 if not ok:
                     return Response({'error': reason}, status=400)
 
-                # Release previous driver if different
                 if booking.assigned_driver and booking.assigned_driver != driver:
                     booking.assigned_driver.status = 'available'
                     booking.assigned_driver.save()
@@ -373,7 +371,9 @@ class TransportBookingViewSet(viewsets.ModelViewSet):
                 return Response(TransportBookingSerializer(booking).data)
 
             # --- Case 2: no vehicle yet, try the driver's primary vehicle ---
-            primary = Vehicle.objects.filter(primary_driver=driver).first()
+            primary = Vehicle.objects.select_for_update().filter(
+                primary_driver=driver
+            ).first()
 
             if primary:
                 if primary.status != 'available':
@@ -396,9 +396,7 @@ class TransportBookingViewSet(viewsets.ModelViewSet):
                     driver.save()
                     booking.status = 'assigned'
                     booking.pairing_source = 'primary'
-                    booking.pairing_warning = (
-                        _trailer_warning(primary, booking)
-                    )
+                    booking.pairing_warning = _trailer_warning(primary, booking)
                 else:
                     booking.assigned_driver = driver
                     driver.status = 'on_trip'
@@ -465,44 +463,46 @@ class TransportBookingViewSet(viewsets.ModelViewSet):
                 status=400,
             )
 
-        trailers = list(Trailer.objects.filter(id__in=trailer_ids))
-        if len(trailers) != len(trailer_ids):
-            return Response(
-                {'error': 'One or more trailers not found'},
-                status=404,
+        with transaction.atomic():
+            trailers = list(
+                Trailer.objects.select_for_update().filter(id__in=trailer_ids)
             )
-
-        for t in trailers:
-            if t.status != 'available':
+            if len(trailers) != len(trailer_ids):
                 return Response(
-                    {'error': f'Trailer {t.registration_number} is not available'},
+                    {'error': 'One or more trailers not found'},
+                    status=404,
+                )
+
+            for t in trailers:
+                if t.status != 'available':
+                    return Response(
+                        {'error': f'Trailer {t.registration_number} is not available'},
+                        status=400,
+                    )
+
+            # Rule: cargo exceeds solo capacity => at least one trailer required
+            if requires_trailer(booking.assigned_vehicle, booking) and not trailers:
+                return Response(
+                    {'error': (
+                        f'Cargo ({booking.cargo_weight_kg}kg) exceeds the vehicle '
+                        f'solo capacity ({booking.assigned_vehicle.tonnage}t). '
+                        f'At least one trailer is required.'
+                    )},
                     status=400,
                 )
 
-        # Rule: cargo exceeds solo capacity => at least one trailer required
-        if requires_trailer(booking.assigned_vehicle, booking) and not trailers:
-            return Response(
-                {'error': (
-                    f'Cargo ({booking.cargo_weight_kg}kg) exceeds the vehicle '
-                    f'solo capacity ({booking.assigned_vehicle.tonnage}t). '
-                    f'At least one trailer is required.'
-                )},
-                status=400,
-            )
+            # Rule: combined capacity must cover cargo
+            combined = combined_capacity(booking.assigned_vehicle, trailers)
+            cargo_t = Decimal(str(booking.cargo_weight_kg or 0)) / 1000
+            if combined < cargo_t:
+                return Response(
+                    {'error': (
+                        f'Combined capacity ({combined}t) is less than cargo weight '
+                        f'({cargo_t:.2f}t). Add another trailer or use a larger vehicle.'
+                    )},
+                    status=400,
+                )
 
-        # Rule: combined capacity must cover cargo
-        combined = combined_capacity(booking.assigned_vehicle, trailers)
-        cargo_t = Decimal(str(booking.cargo_weight_kg or 0)) / 1000
-        if combined < cargo_t:
-            return Response(
-                {'error': (
-                    f'Combined capacity ({combined}t) is less than cargo weight '
-                    f'({cargo_t:.2f}t). Add another trailer or use a larger vehicle.'
-                )},
-                status=400,
-            )
-
-        with transaction.atomic():
             # Release trailers that were attached before but not in the new list
             for old in booking.assigned_trailers.all():
                 if old not in trailers:
@@ -646,7 +646,6 @@ class TransportBookingViewSet(viewsets.ModelViewSet):
             booking.save()
 
             if new_status in ('delivered', 'cancelled'):
-                # Release every resource
                 if booking.assigned_vehicle:
                     booking.assigned_vehicle.status = 'available'
                     booking.assigned_vehicle.save()

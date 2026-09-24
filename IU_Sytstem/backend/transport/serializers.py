@@ -89,51 +89,55 @@ class DriverSerializer(serializers.ModelSerializer):
 
 class TransportBookingSerializer(serializers.ModelSerializer):
     assigned_vehicle_reg = serializers.CharField(
-        source='assigned_vehicle.registration_number', read_only=True
+        source='assigned_vehicle.registration_number',
+        read_only=True,
     )
     assigned_driver_name = serializers.SerializerMethodField()
+    assigned_trailer_regs = serializers.SerializerMethodField()
 
     class Meta:
         model = TransportBooking
         fields = [
-            'id', 'customer_name', 'customer_phone', 'customer_email',
-            'pickup_location', 'delivery_location',
-            'cargo_description', 'cargo_weight_kg',
-            'pickup_date', 'delivery_date',
+            'id',
+            'customer_name',
+            'customer_phone',
+            'customer_email',
+            'pickup_location',
+            'delivery_location',
+            'cargo_description',
+            'cargo_weight_kg',
+            'cargo_category',
+            'pickup_date',
+            'delivery_date',
             'quoted_price',
-            'assigned_vehicle', 'assigned_vehicle_reg',
-            'assigned_driver', 'assigned_driver_name',
-            'status', 'notes',
-            'created_at', 'updated_at',
+            'assigned_vehicle',
+            'assigned_vehicle_reg',
+            'assigned_driver',
+            'assigned_driver_name',
+            'assigned_trailers',
+            'assigned_trailer_regs',
+            'pairing_source',
+            'pairing_warning',
+            'assigned_at',
+            'status',
+            'notes',
+            'created_at',
+            'updated_at',
         ]
-        read_only_fields = ['assigned_at', 'assigned_by', 'created_at', 'updated_at']
+        read_only_fields = [
+            'assigned_at',
+            'assigned_by',
+            'pairing_source',
+            'pairing_warning',
+            'created_at',
+            'updated_at',
+        ]
 
     def get_assigned_driver_name(self, obj):
-        if not obj.assigned_driver:
-            return None
-        return str(obj.assigned_driver)
+        return str(obj.assigned_driver) if obj.assigned_driver else None
 
-    needs_trailer = serializers.SerializerMethodField()
-    combined_capacity = serializers.SerializerMethodField()
-
-    class Meta:
-        model = TransportBooking
-        fields = [
-            # ... existing fields ...
-            'needs_trailer', 'combined_capacity',
-        ]
-
-    def get_needs_trailer(self, obj):
-        if not obj.assigned_vehicle:
-            return False
-        return requires_trailer(obj.assigned_vehicle, obj)
-
-    def get_combined_capacity(self, obj):
-        if not obj.assigned_vehicle:
-            return None
-        trailers = obj.assigned_trailers.all() if obj.pk else []
-        return str(combined_capacity(obj.assigned_vehicle, trailers))
-
+    def get_assigned_trailer_regs(self, obj):
+        return [t.registration_number for t in obj.assigned_trailers.all()]
 class TrailerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trailer

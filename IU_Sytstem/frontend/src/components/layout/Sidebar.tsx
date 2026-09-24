@@ -1,7 +1,16 @@
 import { NavLink } from 'react-router-dom'
 import {
-  LayoutDashboard, Package, Truck, Wallet, Store, BarChart3,
-  Users, Warehouse, ClipboardList,
+  LayoutDashboard,
+  Package,
+  Truck,
+  Wallet,
+  Store,
+  BarChart3,
+  Users,
+  Warehouse,
+  ClipboardList,
+  FlaskConical,
+  ExternalLink,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useRole } from '@/hooks/useRole'
@@ -15,37 +24,73 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-  { label: 'Inventory', to: '/inventory', icon: Package,
-    roles: ['inventory_manager', 'inventory_clerk'] },
-  { label: 'Supply Chain', to: '/supply-chain', icon: Warehouse,
-    roles: ['supply_chain_officer'] },
-  { label: 'Transport', to: '/transport', icon: Truck,
-    roles: ['transport_manager', 'transport_clerk'] },
-  { label: 'Wholesale', to: '/wholesale', icon: Store,
-    roles: ['wholesale_manager', 'wholesale_clerk', 'cashier'] },
-  { label: 'Payroll', to: '/payroll', icon: Wallet,
-    roles: ['payroll_officer'] },
-  { label: 'Reporting', to: '/reporting', icon: BarChart3,
-    roles: ['reporting_analyst', 'inventory_manager', 'transport_manager',
-            'supply_chain_officer', 'wholesale_manager', 'payroll_officer'] },
+  {
+    label: 'Inventory',
+    to: '/inventory',
+    icon: Package,
+    roles: ['inventory_manager', 'inventory_clerk'],
+  },
+  {
+    label: 'Supply Chain',
+    to: '/supply-chain',
+    icon: Warehouse,
+    roles: ['supply_chain_officer'],
+  },
+  {
+    label: 'Transport',
+    to: '/transport',
+    icon: Truck,
+    roles: ['transport_manager', 'transport_clerk'],
+  },
+  {
+    label: 'Wholesale',
+    to: '/wholesale',
+    icon: Store,
+    roles: ['wholesale_manager', 'wholesale_clerk', 'cashier'],
+  },
+  {
+    label: 'Payroll',
+    to: '/payroll',
+    icon: Wallet,
+    roles: ['payroll_officer'],
+  },
+  {
+    label: 'Reporting',
+    to: '/reporting',
+    icon: BarChart3,
+    roles: [
+      'reporting_analyst',
+      'inventory_manager',
+      'transport_manager',
+      'supply_chain_officer',
+      'wholesale_manager',
+      'payroll_officer',
+    ],
+  },
   { label: 'Admin', to: '/admin', icon: Users },
+  { label: 'Playground', to: '/playground', icon: FlaskConical },
 ]
 
 export function Sidebar() {
   const { hasAnyRole, isSuperuser } = useRole()
 
+  const visibleItems = NAV.filter((item) => {
+    if (item.to === '/admin') return isSuperuser
+    if (!item.roles) return true
+    return isSuperuser || hasAnyRole(item.roles)
+  })
+
   return (
     <aside className="hidden w-60 flex-col border-r border-slate-200 bg-white md:flex">
+      {/* Brand */}
       <div className="flex h-16 items-center gap-2 border-b border-slate-200 px-5">
         <ClipboardList className="h-6 w-6 text-brand-500" />
         <span className="font-semibold text-slate-800">IU System</span>
       </div>
-      <nav className="flex-1 space-y-1 p-3">
-        {NAV.filter((item) => {
-          if (item.to === '/admin') return isSuperuser
-          if (!item.roles) return true
-          return isSuperuser || hasAnyRole(item.roles)
-        }).map((item) => (
+
+      {/* Internal navigation */}
+      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+        {visibleItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -63,6 +108,25 @@ export function Sidebar() {
           </NavLink>
         ))}
       </nav>
+
+      {/* External links — separated from internal nav */}
+      <div className="border-t border-slate-200 p-3">
+        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          External
+        </p>
+        <a
+          href="/book"
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center justify-between gap-3 rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+        >
+          <span className="flex items-center gap-3">
+            <ExternalLink className="h-4 w-4" />
+            Public Portal
+          </span>
+          <span className="text-xs text-slate-400">↗</span>
+        </a>
+      </div>
     </aside>
   )
 }

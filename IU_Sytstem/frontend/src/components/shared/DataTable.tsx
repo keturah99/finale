@@ -56,7 +56,7 @@ export function DataTable<T extends MRT_RowData>({
       sx: {
         border: '1px solid #e2e8f0',
         borderRadius: '0.5rem',
-        overflow: 'hidden',
+        overflow: 'visible',
       },
     },
     muiTableHeadCellProps: {
