@@ -67,6 +67,7 @@ export interface StockOut {
   wholesale: number
   product: number
   product_name: string
+  weekly_sales: number | null
   quantity: number
   unit_value: string
   total_value: string
@@ -200,4 +201,37 @@ export interface WeeklySalesSummary {
   total_expenses: string
   total_damages_value: string
   net_position: string
+}
+
+// ---------------------------------------------------------------------------
+// Pending collections (laybys) — now under wholesale
+// ---------------------------------------------------------------------------
+
+export type CollectionStatus = 'pending' | 'ready' | 'collected' | 'cancelled'
+
+export interface PendingCollection {
+  id: number
+  wholesale: number
+  wholesale_name: string
+  customer_name: string
+  customer_phone: string
+  description: string
+  total_price: string
+  amount_paid: string
+  balance: string
+  collection_deadline: string | null
+  status: CollectionStatus
+  recorded_by: number | null
+  created_at: string
+}
+
+export interface PendingCollectionFormData {
+  wholesale: number
+  customer_name: string
+  customer_phone?: string
+  description: string
+  total_price: string
+  amount_paid?: string
+  collection_deadline?: string | null
+  status: CollectionStatus
 }

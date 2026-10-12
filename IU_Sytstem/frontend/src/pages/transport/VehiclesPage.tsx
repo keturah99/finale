@@ -12,11 +12,11 @@ import { FormField } from '@/components/forms/FormField'
 import { FormSelect } from '@/components/forms/FormSelect'
 import { FormCombobox } from '@/components/forms/FormCombobox'
 import { RegNumberInput } from '@/components/shared/RegNumberInput'
-import { CurrencyInput } from '@/components/shared/CurrencyInput'
 import { DataTable } from '@/components/shared/DataTable'
 import { FilterBar } from '@/components/shared/FilterBar'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { WriteOnly } from '@/components/guards/WriteOnly'
 import { Select } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import {
@@ -32,6 +32,7 @@ import {
   useDeleteVehicle,
   useDrivers,
 } from '@/hooks/queries/useTransport'
+import { useIsReadOnly } from '@/hooks/useIsReadOnly'
 import type {
   Vehicle,
   VehicleFormData,
@@ -40,14 +41,8 @@ import type {
   VehicleStatus,
 } from '@/types/transport'
 
-// ---------------------------------------------------------------------------
-// Form schema
-// ---------------------------------------------------------------------------
-
 const vehicleSchema = z.object({
-  registration_number: z
-    .string()
-    .regex(/^[A-Z]{3} \d{4}$/, 'Format: ABC 1234'),
+  registration_number: z.string().regex(/^[A-Z]{3} \d{4}$/, 'Format: ABC 1234'),
   make: z.string().min(1, 'Make required').max(50),
   vehicle_type: z.enum([
     'small_car', 'van', 'canter', 'fuso', 'tipper', 'semi_truck',
@@ -82,11 +77,9 @@ const STATUS_OPTIONS = [
   { value: 'retired', label: 'Retired' },
 ]
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
-
 export function VehiclesPage() {
+  const isReadOnly = useIsReadOnly()
+
   const [typeFilter, setTypeFilter] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [search, setSearch] = useState('')
@@ -113,8 +106,8 @@ export function VehiclesPage() {
     )
   }, [vehicles, search])
 
-  const columns = useMemo<MRT_ColumnDef<Vehicle>[]>(
-    () => [
+  const columns = useMemo<MRT_ColumnDef<Vehicle>[]>(() => {
+    const base: MRT_ColumnDef<Vehicle>[] = [
       {
         accessorKey: 'registration_number',
         header: 'Registration',
@@ -126,11 +119,7 @@ export function VehiclesPage() {
         ),
       },
       { accessorKey: 'make', header: 'Make', size: 140 },
-      {
-        accessorKey: 'vehicle_type_display',
-        header: 'Type',
-        size: 130,
-      },
+      { accessorKey: 'vehicle_type_display', header: 'Type', size: 130 },
       {
         accessorKey: 'tonnage',
         header: 'Tonnage',
@@ -141,9 +130,7 @@ export function VehiclesPage() {
         accessorKey: 'category_display',
         header: 'Category',
         size: 110,
-        Cell: ({ cell }) => (
-          <StatusBadge status={cell.row.original.category} />
-        ),
+        Cell: ({ cell }) => <StatusBadge status={cell.row.original.category} />,
       },
       {
         accessorKey: 'status',
@@ -157,7 +144,10 @@ export function VehiclesPage() {
         size: 180,
         Cell: ({ cell }) => cell.getValue<string | null>() ?? '—',
       },
-      {
+    ]
+
+    if (!isReadOnly) {
+      base.push({
         id: 'actions',
         header: '',
         size: 60,
@@ -192,10 +182,11 @@ export function VehiclesPage() {
             </DropdownItem>
           </DropdownMenu>
         ),
-      },
-    ],
-    [],
-  )
+      })
+    }
+
+    return base
+  }, [isReadOnly])
 
   const handleSave = async (data: VehicleForm) => {
     try {
@@ -241,15 +232,17 @@ export function VehiclesPage() {
         <p className="text-sm text-slate-500">
           Company fleet. Each vehicle can have a primary driver for auto-pairing.
         </p>
-        <Button
-          onClick={() => {
-            setEditing(null)
-            setDialogOpen(true)
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          New Vehicle
-        </Button>
+        <WriteOnly>
+          <Button
+            onClick={() => {
+              setEditing(null)
+              setDialogOpen(true)
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            New Vehicle
+          </Button>
+        </WriteOnly>
       </div>
 
       <FilterBar
@@ -330,10 +323,6 @@ export function VehiclesPage() {
     </div>
   )
 }
-
-// ---------------------------------------------------------------------------
-// Dialog
-// ---------------------------------------------------------------------------
 
 function VehicleDialog({
   open,

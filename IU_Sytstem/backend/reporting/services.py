@@ -16,10 +16,13 @@ from reportlab.platypus import (
 
 from inventory.models import Product, StockLevel, StockMovement, StockAlert
 from supplychain.models import (
-    Farmer, ProducePurchase, ProductionBatch, PendingCollection
+    Farmer, ProducePurchase, ProductionBatch
 )
+from wholesale.models import PendingCollection
 from transport.models import Vehicle, Driver, TransportBooking
 from payroll.models import PayrollRun, PayrollRecord
+
+from wholesale.reports import WHOLESALE_REPORT_BUILDERS
 
 User = get_user_model()
 
@@ -242,17 +245,27 @@ def transport_bookings(params):
 
 
 def vehicle_utilization(params):
-    headers = ['Reg #', 'Type', 'Capacity (kg)', 'Status', 'Trips', 'Cargo (kg)']
+    """Trips and cargo moved per vehicle."""
+    from transport.models import Vehicle, TransportBooking
+    from django.db.models import Sum
+
+    headers = ['Reg #', 'Make', 'Type', 'Tonnage', 'Status', 'Trips', 'Cargo (kg)']
     rows = []
     for v in Vehicle.objects.all():
         trips = TransportBooking.objects.filter(assigned_vehicle=v).count()
         cargo = TransportBooking.objects.filter(
             assigned_vehicle=v, status='delivered'
-        ).aggregate(t=Sum('cargo_weight_kg'))['t'] or 0
-        rows.append([v.registration_number, v.vehicle_type, v.capacity_kg,
-                     v.get_status_display(), trips, cargo])
+        ).aggregate(t=Sum('cargo_weight_kg'))['t'] or Decimal('0.00')
+        rows.append([
+            v.registration_number,
+            v.make,
+            v.get_vehicle_type_display(),
+            v.tonnage,
+            v.get_status_display(),
+            trips,
+            cargo,
+        ])
     return headers, rows
-
 
 def payroll_summary(params):
     run_id = params.get('run_id')
@@ -378,3 +391,28 @@ def render_report(report_type: str, report_format: str, params: dict) -> tuple:
     if report_format == 'pdf':
         return _rows_to_pdf(title, headers, payload), 'application/pdf', 'pdf', row_count
     raise ValueError(f"Unsupported format: {report_format}")
+
+REPORT_BUILDERS.update(WHOLESALE_REPORT_BUILDERS)
+
+REPORT_BUILDERS = {
+    'inventory_summary': inventory_summary,
+    'stock_movements': stock_movements,
+    'low_stock_alerts': low_stock_alerts,
+    'produce_purchases': produce_purchases,
+    'production_batches': production_batches,
+    'pending_collections': pending_collections,
+    'transport_bookings': transport_bookings,
+    'vehicle_utilization': vehicle_utilization,
+    'payroll_summary': payroll_summary,
+}
+
+# Merge wholesale reports
+try:
+    from wholesale.reports import WHOLESALE_REPORT_BUILDERS
+    REPORT_BUILDERS.update(WHOLESALE_REPORT_BUILDERS)
+except ImportError:
+    pass
+
+REPORT_TITLES = {
+    k: k.replace('_', ' ').title() for k in REPORT_BUILDERS
+}

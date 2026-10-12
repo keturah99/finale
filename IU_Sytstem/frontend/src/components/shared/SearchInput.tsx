@@ -29,7 +29,7 @@ export function SearchInput({
 
   return (
     <div className="relative w-full max-w-xs">
-      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
       <Input
         value={local}
         onChange={(e) => setLocal(e.target.value)}
@@ -40,7 +40,7 @@ export function SearchInput({
         <button
           type="button"
           onClick={() => setLocal('')}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:bg-slate-100"
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
         >
           <X className="h-3.5 w-3.5" />
         </button>

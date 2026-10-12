@@ -1,8 +1,10 @@
 from rest_framework import serializers
-from .models import (
-    Farmer, Crop, ProducePurchase, ProductionBatch, PendingCollection
-)
+from .models import Farmer, Crop, ProducePurchase, ProductionBatch
 
+
+# ---------------------------------------------------------------------------
+# Farmer
+# ---------------------------------------------------------------------------
 
 class FarmerSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
@@ -17,6 +19,10 @@ class FarmerSerializer(serializers.ModelSerializer):
         return f"{obj.first_name} {obj.last_name}".strip()
 
 
+# ---------------------------------------------------------------------------
+# Crop
+# ---------------------------------------------------------------------------
+
 class CropSerializer(serializers.ModelSerializer):
     display_name = serializers.CharField(source='get_name_display', read_only=True)
 
@@ -24,6 +30,10 @@ class CropSerializer(serializers.ModelSerializer):
         model = Crop
         fields = ['id', 'name', 'display_name', 'unit']
 
+
+# ---------------------------------------------------------------------------
+# Produce purchase
+# ---------------------------------------------------------------------------
 
 class ProducePurchaseSerializer(serializers.ModelSerializer):
     farmer_name = serializers.CharField(source='farmer.__str__', read_only=True)
@@ -41,6 +51,10 @@ class ProducePurchaseSerializer(serializers.ModelSerializer):
         read_only_fields = ['total_amount', 'payment_status', 'recorded_by', 'created_at']
 
 
+# ---------------------------------------------------------------------------
+# Production batch
+# ---------------------------------------------------------------------------
+
 class ProductionBatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductionBatch
@@ -51,14 +65,3 @@ class ProductionBatchSerializer(serializers.ModelSerializer):
             'status', 'notes', 'created_at',
         ]
         read_only_fields = ['yield_percentage', 'created_at']
-
-
-class PendingCollectionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PendingCollection
-        fields = [
-            'id', 'customer_name', 'customer_phone', 'description',
-            'total_price', 'amount_paid', 'balance',
-            'collection_deadline', 'status', 'recorded_by', 'created_at',
-        ]
-        read_only_fields = ['balance', 'recorded_by', 'created_at']

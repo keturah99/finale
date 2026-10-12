@@ -15,6 +15,9 @@ import type {
   WeeklySalesSummary,
 } from '@/types/wholesale'
 
+import type { PendingCollection, PendingCollectionFormData } from '@/types/wholesale'
+
+
 // ---------------------------------------------------------------------------
 // Pagination helper
 // ---------------------------------------------------------------------------
@@ -66,6 +69,9 @@ export const wholesaleKeys = {
     [...wholesaleKeys.all, 'expenses', filters] as const,
   weeklyDamages: (filters?: Record<string, unknown>) =>
     [...wholesaleKeys.all, 'weekly-damages', filters] as const,
+  collections: (filters?: Record<string, unknown>) =>
+  [...wholesaleKeys.all, 'collections', filters] as const,
+  collection: (id: number) => [...wholesaleKeys.collections(), id] as const,
 }
 
 // ---------------------------------------------------------------------------
@@ -414,5 +420,71 @@ export function useCreateWeeklyDamage() {
       qc.invalidateQueries({ queryKey: wholesaleKeys.weeklyDamages() })
       qc.invalidateQueries({ queryKey: wholesaleKeys.weeklySales() })
     },
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Pending collections (laybys)
+// ---------------------------------------------------------------------------
+
+
+export function useCollections(filters?: Record<string, unknown>) {
+  return useQuery({
+    queryKey: wholesaleKeys.collections(filters),
+    queryFn: () => fetchList<PendingCollection>('/api/wholesale/collections/', filters),
+  })
+}
+
+export function useCreateCollection() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (payload: PendingCollectionFormData) => {
+      const { data } = await api.post<PendingCollection>(
+        '/api/wholesale/collections/',
+        payload,
+      )
+      return data
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: wholesaleKeys.collections() }),
+  })
+}
+
+export function useUpdateCollection(id: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (payload: Partial<PendingCollectionFormData>) => {
+      const { data } = await api.patch<PendingCollection>(
+        `/api/wholesale/collections/${id}/`,
+        payload,
+      )
+      return data
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: wholesaleKeys.collections() })
+      qc.invalidateQueries({ queryKey: wholesaleKeys.collection(id) })
+    },
+  })
+}
+
+export function useMarkCollected() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { data } = await api.post<PendingCollection>(
+        `/api/wholesale/collections/${id}/mark_collected/`,
+      )
+      return data
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: wholesaleKeys.collections() }),
+  })
+}
+
+export function useDeleteCollection() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: number) => {
+      await api.delete(`/api/wholesale/collections/${id}/`)
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: wholesaleKeys.collections() }),
   })
 }

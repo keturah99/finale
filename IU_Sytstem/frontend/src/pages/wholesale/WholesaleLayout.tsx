@@ -7,6 +7,7 @@ import {
   ArrowLeftRight,
   AlertTriangle,
   CalendarDays,
+  Archive,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -19,6 +20,7 @@ const TABS = [
   { label: 'Transfers', to: 'transfers', icon: ArrowLeftRight },
   { label: 'Damages', to: 'damages', icon: AlertTriangle },
   { label: 'Weekly Sales', to: 'weekly-sales', icon: CalendarDays },
+  { label: 'Laybys', to: 'laybys', icon: Archive },
 ]
 
 export function WholesaleLayout() {

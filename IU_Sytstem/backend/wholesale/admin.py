@@ -4,10 +4,9 @@ from django.utils.html import format_html
 from .models import (
     Wholesale, WholesaleStockLevel,
     WholesaleStockIn, WholesaleStockOut, WholesaleDamage,
-)
-from .models import InterWholesaleTransfer
-from .models import (
+    InterWholesaleTransfer,
     WeeklySales, WeeklySalesCashIn, WeeklySalesExpense, WeeklySalesDamage,
+    PendingCollection,
 )
 
 
@@ -64,8 +63,7 @@ class WholesaleStockOutAdmin(admin.ModelAdmin):
 @admin.register(WholesaleDamage)
 class WholesaleDamageAdmin(admin.ModelAdmin):
     list_display = ('wholesale', 'product', 'quantity', 'selling_price',
-                    'total_loss_value', 'reported_by', 'reported_at',
-                    'thumbnail')
+                    'total_loss_value', 'reported_by', 'reported_at', 'thumbnail')
     list_filter = ('wholesale', 'reported_at')
     search_fields = ('product__sku', 'product__name')
     readonly_fields = ('total_loss_value', 'reported_at')
@@ -74,26 +72,20 @@ class WholesaleDamageAdmin(admin.ModelAdmin):
     @admin.display(description='Image')
     def thumbnail(self, obj):
         if obj.image:
-            return format_html(
-                '<img src="{}" style="height:40px;" />', obj.image.url
-            )
+            return format_html('<img src="{}" style="height:40px;" />', obj.image.url)
         return '—'
+
 
 @admin.register(InterWholesaleTransfer)
 class InterWholesaleTransferAdmin(admin.ModelAdmin):
-    list_display = (
-        'id', 'from_wholesale', 'to_wholesale', 'product',
-        'quantity', 'unit_value', 'total_value',
-        'status_badge', 'initiated_by', 'initiated_at',
-    )
+    list_display = ('id', 'from_wholesale', 'to_wholesale', 'product',
+                    'quantity', 'unit_value', 'total_value',
+                    'status_badge', 'initiated_by', 'initiated_at')
     list_filter = ('status', 'from_wholesale', 'to_wholesale', 'initiated_at')
     search_fields = ('product__sku', 'product__name', 'reference')
-    readonly_fields = (
-        'total_value', 'initiated_at',
-        'approved_at', 'received_at', 'cancelled_at',
-    )
+    readonly_fields = ('total_value', 'initiated_at', 'approved_at',
+                       'received_at', 'cancelled_at')
     date_hierarchy = 'initiated_at'
-
     actions = ['action_approve', 'action_receive', 'action_cancel']
 
     @admin.display(description='Status')
@@ -111,8 +103,6 @@ class InterWholesaleTransferAdmin(admin.ModelAdmin):
             obj.get_status_display(),
         )
 
-    # --- Bulk actions ---
-
     @admin.action(description='Approve selected transfers (pending → in_transit)')
     def action_approve(self, request, queryset):
         from .services import approve_transfer
@@ -123,9 +113,7 @@ class InterWholesaleTransferAdmin(admin.ModelAdmin):
                 approve_transfer(t, request.user)
                 approved += 1
             except ValidationError as e:
-                self.message_user(
-                    request, f'#{t.pk}: {e}', level='error',
-                )
+                self.message_user(request, f'#{t.pk}: {e}', level='error')
         self.message_user(request, f'{approved} transfer(s) approved.')
 
     @admin.action(description='Receive selected transfers (in_transit → received)')
@@ -138,9 +126,7 @@ class InterWholesaleTransferAdmin(admin.ModelAdmin):
                 receive_transfer(t, request.user)
                 received += 1
             except ValidationError as e:
-                self.message_user(
-                    request, f'#{t.pk}: {e}', level='error',
-                )
+                self.message_user(request, f'#{t.pk}: {e}', level='error')
         self.message_user(request, f'{received} transfer(s) received.')
 
     @admin.action(description='Cancel selected transfers')
@@ -153,9 +139,7 @@ class InterWholesaleTransferAdmin(admin.ModelAdmin):
                 cancel_transfer(t, request.user)
                 cancelled += 1
             except ValidationError as e:
-                self.message_user(
-                    request, f'#{t.pk}: {e}', level='error',
-                )
+                self.message_user(request, f'#{t.pk}: {e}', level='error')
         self.message_user(request, f'{cancelled} transfer(s) cancelled.')
 
 
@@ -179,19 +163,14 @@ class WeeklySalesDamageInline(admin.TabularInline):
 
 @admin.register(WeeklySales)
 class WeeklySalesAdmin(admin.ModelAdmin):
-    list_display = (
-        'label', 'wholesale', 'seller', 'status',
-        'start_date', 'end_date', 'opened_at', 'closed_at',
-    )
+    list_display = ('label', 'wholesale', 'seller', 'status',
+                    'start_date', 'end_date', 'opened_at', 'closed_at')
     list_filter = ('status', 'wholesale', 'year')
     search_fields = ('label', 'wholesale__name')
     readonly_fields = ('year', 'week_number', 'label', 'opened_at', 'closed_at')
     date_hierarchy = 'start_date'
-    inlines = [
-        WeeklySalesCashInInline,
-        WeeklySalesExpenseInline,
-        WeeklySalesDamageInline,
-    ]
+    inlines = [WeeklySalesCashInInline, WeeklySalesExpenseInline,
+               WeeklySalesDamageInline]
     actions = ['action_close_and_open_next']
 
     @admin.action(description='Close and open next week')
@@ -201,10 +180,7 @@ class WeeklySalesAdmin(admin.ModelAdmin):
         for ws in queryset:
             try:
                 new_ws = close_and_open_next(ws, request.user)
-                self.message_user(
-                    request,
-                    f'{ws.label} closed; opened {new_ws.label}.',
-                )
+                self.message_user(request, f'{ws.label} closed; opened {new_ws.label}.')
             except ValidationError as e:
                 self.message_user(request, f'{ws.label}: {e}', level='error')
 
@@ -232,3 +208,12 @@ class WeeklySalesDamageAdmin(admin.ModelAdmin):
     list_filter = ('weekly_sales', 'recorded_at')
     readonly_fields = ('total_loss_value', 'recorded_at')
     date_hierarchy = 'recorded_at'
+
+
+@admin.register(PendingCollection)
+class PendingCollectionAdmin(admin.ModelAdmin):
+    list_display = ('customer_name', 'wholesale', 'total_price',
+                    'amount_paid', 'balance', 'status', 'collection_deadline')
+    list_filter = ('wholesale', 'status', 'collection_deadline')
+    search_fields = ('customer_name', 'customer_phone')
+    readonly_fields = ('balance', 'created_at')

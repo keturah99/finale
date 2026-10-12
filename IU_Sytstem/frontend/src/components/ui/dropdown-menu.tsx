@@ -27,14 +27,8 @@ export function DropdownMenu({
   const triggerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  // Close on outside click — but check both the trigger and the portal
-  useClickOutside(
-    menuRef,
-    () => setOpen(false),
-    open,
-  )
+  useClickOutside(menuRef, () => setOpen(false), open)
 
-  // Compute position from the trigger's bounding rect when opening
   useEffect(() => {
     if (!open || !triggerRef.current) return
     const rect = triggerRef.current.getBoundingClientRect()
@@ -47,7 +41,6 @@ export function DropdownMenu({
     setPosition({ top, left, minWidth: width })
   }, [open, align])
 
-  // Close on scroll/resize to avoid stale positioning
   useEffect(() => {
     if (!open) return
     const close = () => setOpen(false)
@@ -83,7 +76,8 @@ export function DropdownMenu({
               minWidth: position.minWidth,
             }}
             className={cn(
-              'z-50 rounded-md border border-slate-200 bg-white py-1 shadow-lg',
+              'z-50 rounded-md border py-1 shadow-lg',
+              'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800',
               className,
             )}
           >
@@ -113,8 +107,8 @@ export function DropdownItem({
       className={cn(
         'block w-full px-3 py-1.5 text-left text-sm transition',
         destructive
-          ? 'text-red-600 hover:bg-red-50'
-          : 'text-slate-700 hover:bg-slate-50',
+          ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40'
+          : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700',
         className,
       )}
     >
@@ -124,5 +118,7 @@ export function DropdownItem({
 }
 
 export function DropdownSeparator() {
-  return <div className="my-1 border-t border-slate-100" />
+  return (
+    <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
+  )
 }

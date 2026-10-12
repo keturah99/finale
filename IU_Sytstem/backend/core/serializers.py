@@ -27,6 +27,16 @@ class RoleSerializer(serializers.ModelSerializer):
 
 
 # ---------------------------------------------------------------------------
+# Wholesale (minimal, to avoid circular import)
+# ---------------------------------------------------------------------------
+
+class WholesaleMiniSerializer(serializers.Serializer):
+    """Read-only minimal shape for embedding in UserSerializer."""
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(read_only=True)
+
+
+# ---------------------------------------------------------------------------
 # User
 # ---------------------------------------------------------------------------
 
@@ -35,6 +45,13 @@ class UserSerializer(serializers.ModelSerializer):
     department_id = serializers.PrimaryKeyRelatedField(
         queryset=Department.objects.all(),
         source='department',
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
+
+    wholesale = WholesaleMiniSerializer(read_only=True)
+    wholesale_id = serializers.IntegerField(
         write_only=True,
         required=False,
         allow_null=True,
@@ -50,7 +67,6 @@ class UserSerializer(serializers.ModelSerializer):
     )
 
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
-
     full_name = serializers.SerializerMethodField()
 
     class Meta:
@@ -64,6 +80,8 @@ class UserSerializer(serializers.ModelSerializer):
             'full_name',
             'department',
             'department_id',
+            'wholesale',
+            'wholesale_id',
             'roles',
             'role_ids',
             'phone',
@@ -74,25 +92,39 @@ class UserSerializer(serializers.ModelSerializer):
             'last_login',
             'date_joined',
         ]
-        read_only_fields = [
-            'last_login',
-            'date_joined',
-            'is_superuser',   # only superusers can flip this — handled in view
-        ]
+        read_only_fields = ['last_login', 'date_joined']
 
     def get_full_name(self, obj):
-        name = obj.get_full_name()
-        return name or obj.username
+        return obj.get_full_name() or obj.username
+
+    def _resolve_wholesale(self, wholesale_id):
+        """Look up a Wholesale by ID; returns None for null/empty."""
+        if wholesale_id is None or wholesale_id == '':
+            return None
+        # Lazy import to avoid circular dependency
+        from wholesale.models import Wholesale
+        try:
+            return Wholesale.objects.get(pk=wholesale_id)
+        except Wholesale.DoesNotExist:
+            raise serializers.ValidationError({
+                'wholesale_id': 'Wholesale outlet not found.'
+            })
 
     def create(self, validated_data):
+        # Extract write-only fields
         roles = validated_data.pop('roles', [])
         password = validated_data.pop('password', None)
+        wholesale_id = validated_data.pop('wholesale_id', None)
 
         user = User(**validated_data)
         if password:
             user.set_password(password)
         else:
             user.set_unusable_password()
+
+        if wholesale_id:
+            user.wholesale = self._resolve_wholesale(wholesale_id)
+
         user.save()
 
         if roles:
@@ -102,9 +134,13 @@ class UserSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         roles = validated_data.pop('roles', None)
         password = validated_data.pop('password', None)
+        wholesale_id = validated_data.pop('wholesale_id', None)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+
+        if wholesale_id is not None:
+            instance.wholesale = self._resolve_wholesale(wholesale_id)
 
         if password:
             instance.set_password(password)

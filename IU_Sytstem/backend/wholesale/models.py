@@ -6,16 +6,32 @@ Covers:
   - Per-outlet stock levels
   - Stock-in and stock-out movements
   - Damage / loss records
-  - Inter-wholesale stock transfers
-
-WeeklySales and its sub-records are added in a later step.
+  - Inter-wholesale transfers
+  - Weekly sales cycles (with auto-numbering)
+  - Pending collections (hardware laybys)
 """
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+
+
+# ---------------------------------------------------------------------------
+# Decimal coercion helper
+# ---------------------------------------------------------------------------
+
+def to_decimal(value, default=Decimal('0.00')):
+    """Safely convert a value (str, int, float, Decimal, None) to Decimal."""
+    if value is None or value == '':
+        return default
+    if isinstance(value, Decimal):
+        return value
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, ValueError, TypeError):
+        return default
 
 
 # ---------------------------------------------------------------------------
@@ -48,11 +64,7 @@ class Wholesale(models.Model):
 # ---------------------------------------------------------------------------
 
 class WholesaleStockLevel(models.Model):
-    """
-    Current on-hand quantity of a product at a given wholesale outlet.
-    Updated automatically by stock-in, stock-out, damage, and transfer
-    handlers.
-    """
+    """Current on-hand quantity of a product at a given outlet."""
     wholesale = models.ForeignKey(
         Wholesale, on_delete=models.CASCADE, related_name='stock_levels',
     )
@@ -130,9 +142,7 @@ class WholesaleStockIn(models.Model):
     def save(self, *args, **kwargs):
         from .services import sync_stock_in
 
-        self.total_value = (
-            (self.unit_value or Decimal('0.00')) * (self.quantity or 0)
-        )
+        self.total_value = to_decimal(self.unit_value) * (self.quantity or 0)
 
         old_qty = 0
         old_unit = None
@@ -197,12 +207,11 @@ class WholesaleStockOut(models.Model):
                 raise ValidationError({
                     'weekly_sales': 'Weekly sales period belongs to a different wholesale.'
                 })
+
     def save(self, *args, **kwargs):
         from .services import sync_stock_out
 
-        self.total_value = (
-            (self.unit_value or Decimal('0.00')) * (self.quantity or 0)
-        )
+        self.total_value = to_decimal(self.unit_value) * (self.quantity or 0)
 
         old_qty = 0
         if self.pk:
@@ -262,7 +271,7 @@ class WholesaleDamage(models.Model):
         from .services import sync_damage
 
         self.total_loss_value = (
-            (self.selling_price or Decimal('0.00')) * (self.quantity or 0)
+            to_decimal(self.selling_price) * (self.quantity or 0)
         )
 
         old_qty = 0
@@ -284,16 +293,10 @@ class WholesaleDamage(models.Model):
 
 class InterWholesaleTransfer(models.Model):
     r"""
-    Move stock from one wholesale outlet to another, with a staged
-    approval flow:
+    Move stock from one wholesale outlet to another.
 
         pending -> in_transit -> received
                 \-> cancelled
-
-    Stock effects happen only on status transitions:
-        - in_transit: source decremented
-        - received:   destination incremented
-        - cancelled:  source restored if it had been decremented
     """
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -374,9 +377,7 @@ class InterWholesaleTransfer(models.Model):
                 })
 
     def save(self, *args, **kwargs):
-        self.total_value = (
-            (self.unit_value or Decimal('0.00')) * (self.quantity or 0)
-        )
+        self.total_value = to_decimal(self.unit_value) * (self.quantity or 0)
         super().save(*args, **kwargs)
 
 
@@ -385,13 +386,7 @@ class InterWholesaleTransfer(models.Model):
 # ---------------------------------------------------------------------------
 
 class WeeklySales(models.Model):
-    """
-    A sales period at a wholesale outlet.
-
-    `year`, `week_number`, and `label` are auto-generated on save:
-    the week number is the highest existing week_number at the same
-    wholesale for the same year, plus one.
-    """
+    """A sales period at a wholesale outlet."""
     STATUS_CHOICES = [
         ('open', 'Open'),
         ('closed', 'Closed'),
@@ -444,8 +439,6 @@ class WeeklySales(models.Model):
             self.label = f"Wk {self.week_number} — {self.year}"
 
         super().save(*args, **kwargs)
-
-    # --- computed summary properties ---
 
     @property
     def total_stock_in_value(self):
@@ -547,7 +540,7 @@ class WeeklySalesExpense(models.Model):
 
 
 class WeeklySalesDamage(models.Model):
-    """Damages that occur specifically during a sales period."""
+    """Damages that occur during a weekly sales period."""
     weekly_sales = models.ForeignKey(
         WeeklySales, on_delete=models.CASCADE, related_name='damages',
     )
@@ -585,6 +578,58 @@ class WeeklySalesDamage(models.Model):
 
     def save(self, *args, **kwargs):
         self.total_loss_value = (
-            (self.selling_price or Decimal('0.00')) * (self.quantity or 0)
+            to_decimal(self.selling_price) * (self.quantity or 0)
         )
         super().save(*args, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# Pending collections (hardware laybys)
+# ---------------------------------------------------------------------------
+
+class PendingCollection(models.Model):
+    """
+    Hardware layby — goods paid for but awaiting pickup at a specific
+    wholesale outlet.
+    """
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('ready', 'Ready for Collection'),
+        ('collected', 'Collected'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    wholesale = models.ForeignKey(
+        Wholesale, on_delete=models.PROTECT, related_name='collections',
+    )
+    customer_name = models.CharField(max_length=150)
+    customer_phone = models.CharField(max_length=20, blank=True)
+    description = models.TextField(help_text="What was bought / reserved")
+    total_price = models.DecimalField(max_digits=14, decimal_places=2)
+    amount_paid = models.DecimalField(
+        max_digits=14, decimal_places=2, default=Decimal('0.00'),
+    )
+    balance = models.DecimalField(
+        max_digits=14, decimal_places=2, editable=False, default=Decimal('0.00'),
+    )
+    collection_deadline = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        max_length=10, choices=STATUS_CHOICES, default='pending',
+    )
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='recorded_collections',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        total = to_decimal(self.total_price)
+        paid = to_decimal(self.amount_paid)
+        self.balance = total - paid
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.customer_name} — {self.status} ({self.balance} owing)"

@@ -14,6 +14,7 @@ import { FormSelect } from '@/components/forms/FormSelect'
 import { DataTable } from '@/components/shared/DataTable'
 import { FilterBar } from '@/components/shared/FilterBar'
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { WriteOnly } from '@/components/guards/WriteOnly'
 import { Select } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 
@@ -25,10 +26,6 @@ import type {
   BookingStatus,
   CargoCategory,
 } from '@/types/transport'
-
-// ---------------------------------------------------------------------------
-// Form schema
-// ---------------------------------------------------------------------------
 
 const bookingSchema = z.object({
   customer_name: z.string().min(1, 'Name required').max(150),
@@ -61,10 +58,6 @@ const CARGO_OPTIONS: { value: CargoCategory; label: string }[] = [
   { value: 'bulk', label: 'Bulk' },
 ]
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
-
 export function BookingsPage() {
   const navigate = useNavigate()
   const [statusFilter, setStatusFilter] = useState('')
@@ -91,11 +84,7 @@ export function BookingsPage() {
 
   const columns = useMemo<MRT_ColumnDef<TransportBooking>[]>(
     () => [
-      {
-        accessorKey: 'id',
-        header: '#',
-        size: 60,
-      },
+      { accessorKey: 'id', header: '#', size: 60 },
       {
         accessorKey: 'customer_name',
         header: 'Customer',
@@ -201,10 +190,12 @@ export function BookingsPage() {
           Customer transport requests. Assign vehicles, drivers, and trailers
           from the dispatch view.
         </p>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4" />
-          New Booking
-        </Button>
+        <WriteOnly>
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            New Booking
+          </Button>
+        </WriteOnly>
       </div>
 
       <FilterBar
@@ -254,10 +245,6 @@ export function BookingsPage() {
     </div>
   )
 }
-
-// ---------------------------------------------------------------------------
-// New Booking Dialog
-// ---------------------------------------------------------------------------
 
 function NewBookingDialog({
   open,

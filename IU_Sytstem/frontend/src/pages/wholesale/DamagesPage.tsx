@@ -13,21 +13,15 @@ import { FormCombobox } from '@/components/forms/FormCombobox'
 import { CurrencyInput } from '@/components/shared/CurrencyInput'
 import { DataTable } from '@/components/shared/DataTable'
 import { FilterBar } from '@/components/shared/FilterBar'
+import { WriteOnly } from '@/components/guards/WriteOnly'
 import { Select } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 
-import {
-  useOutlets,
-  useDamages,
-  useCreateDamage,
-} from '@/hooks/queries/useWholesale'
+import { useDamages, useCreateDamage } from '@/hooks/queries/useWholesale'
+import { useScopedOutlets } from '@/hooks/useScopedOutlets'
 import { useProducts } from '@/hooks/queries/useInventory'
 import { formatK, formatDateTime } from '@/lib/format'
 import type { Damage } from '@/types/wholesale'
-
-// ---------------------------------------------------------------------------
-// Form schema
-// ---------------------------------------------------------------------------
 
 const damageSchema = z.object({
   wholesale: z.number().int().positive(),
@@ -39,16 +33,12 @@ const damageSchema = z.object({
 
 type DamageForm = z.infer<typeof damageSchema>
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
-
 export function DamagesPage() {
   const [wholesaleFilter, setWholesaleFilter] = useState('')
   const [search, setSearch] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  const { data: outlets = [] } = useOutlets()
+  const { outlets } = useScopedOutlets()
   const { data: products = [] } = useProducts()
 
   const { data: damages = [], isLoading } = useDamages(
@@ -133,10 +123,12 @@ export function DamagesPage() {
         <p className="text-sm text-slate-500">
           Record damaged or lost stock. Deducts from the outlet automatically.
         </p>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4" />
-          Record Damage
-        </Button>
+        <WriteOnly>
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Record Damage
+          </Button>
+        </WriteOnly>
       </div>
 
       <FilterBar
@@ -174,39 +166,37 @@ export function DamagesPage() {
         emptyDescription="Click 'Record Damage' when stock is damaged or lost."
       />
 
-      <DamageDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        outlets={outlets}
-        products={products}
-        onSubmit={async (data, imageFile) => {
-          try {
-            const formData = new FormData()
-            formData.append('wholesale', String(data.wholesale))
-            formData.append('product', String(data.product))
-            formData.append('quantity', String(data.quantity))
-            formData.append('selling_price', data.selling_price)
-            if (data.notes) formData.append('notes', data.notes)
-            if (imageFile) formData.append('image', imageFile)
+      {dialogOpen && (
+        <DamageDialog
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          outlets={outlets}
+          products={products}
+          onSubmit={async (data, imageFile) => {
+            try {
+              const formData = new FormData()
+              formData.append('wholesale', String(data.wholesale))
+              formData.append('product', String(data.product))
+              formData.append('quantity', String(data.quantity))
+              formData.append('selling_price', data.selling_price)
+              if (data.notes) formData.append('notes', data.notes)
+              if (imageFile) formData.append('image', imageFile)
 
-            await createDamage.mutateAsync(formData)
-            toast.success('Damage recorded')
-            setDialogOpen(false)
-          } catch (err) {
-            const msg =
-              (err as { response?: { data?: unknown } })?.response?.data
-            toast.error(msg ? JSON.stringify(msg) : 'Failed to save')
-          }
-        }}
-        loading={createDamage.isPending}
-      />
+              await createDamage.mutateAsync(formData)
+              toast.success('Damage recorded')
+              setDialogOpen(false)
+            } catch (err) {
+              const msg =
+                (err as { response?: { data?: unknown } })?.response?.data
+              toast.error(msg ? JSON.stringify(msg) : 'Failed to save')
+            }
+          }}
+          loading={createDamage.isPending}
+        />
+      )}
     </div>
   )
 }
-
-// ---------------------------------------------------------------------------
-// Dialog with image upload
-// ---------------------------------------------------------------------------
 
 function DamageDialog({
   open,
@@ -360,7 +350,6 @@ function DamageDialog({
           </span>
         </div>
 
-        {/* Image uploader */}
         <div>
           <label className="mb-1 block text-sm font-medium text-slate-700">
             Photo evidence (optional)

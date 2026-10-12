@@ -72,8 +72,16 @@ api.interceptors.response.use(
 )
 
 // --- Download helper: fetch as blob so JWT is sent ---
-export async function downloadFile(url: string, filename: string) {
-  const res = await api.get(url, { responseType: 'blob' })
+export async function downloadFile(
+  url: string,
+  filename: string,
+  method: 'get' | 'post' = 'get',
+) {
+  const res = await api.request({
+    url,
+    method,
+    responseType: 'blob',
+  })
   const blob = new Blob([res.data])
   const link = document.createElement('a')
   link.href = URL.createObjectURL(blob)

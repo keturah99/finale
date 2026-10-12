@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
 import type { MRT_ColumnDef } from 'material-react-table'
+import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -12,6 +12,7 @@ import { FormField } from '@/components/forms/FormField'
 import { DataTable } from '@/components/shared/DataTable'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { WriteOnly } from '@/components/guards/WriteOnly'
 import {
   DropdownMenu,
   DropdownItem,
@@ -24,6 +25,7 @@ import {
   useUpdateOutlet,
   useDeleteOutlet,
 } from '@/hooks/queries/useWholesale'
+import { useIsReadOnly } from '@/hooks/useIsReadOnly'
 import type { Wholesale, WholesaleFormData } from '@/types/wholesale'
 
 // ---------------------------------------------------------------------------
@@ -32,9 +34,9 @@ import type { Wholesale, WholesaleFormData } from '@/types/wholesale'
 
 const outletSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
-  location: z.string().max(200).optional().default(''),
-  phone: z.string().max(20).optional().default(''),
-  is_active: z.boolean().default(true),
+  location: z.string().max(200).optional(),
+  phone: z.string().max(20).optional(),
+  is_active: z.boolean(),
 })
 
 type OutletForm = z.infer<typeof outletSchema>
@@ -44,6 +46,8 @@ type OutletForm = z.infer<typeof outletSchema>
 // ---------------------------------------------------------------------------
 
 export function OutletsPage() {
+  const isReadOnly = useIsReadOnly()
+
   const { data: outlets = [], isLoading } = useOutlets()
   const createOutlet = useCreateOutlet()
   const deleteOutlet = useDeleteOutlet()
@@ -54,8 +58,8 @@ export function OutletsPage() {
 
   const updateOutlet = useUpdateOutlet(editing?.id ?? 0)
 
-  const columns = useMemo<MRT_ColumnDef<Wholesale>[]>(
-    () => [
+  const columns = useMemo<MRT_ColumnDef<Wholesale>[]>(() => {
+    const base: MRT_ColumnDef<Wholesale>[] = [
       { accessorKey: 'name', header: 'Name' },
       { accessorKey: 'location', header: 'Location' },
       { accessorKey: 'phone', header: 'Phone' },
@@ -71,7 +75,10 @@ export function OutletsPage() {
           <StatusBadge status={cell.getValue<boolean>() ? 'active' : 'inactive'} />
         ),
       },
-      {
+    ]
+
+    if (!isReadOnly) {
+      base.push({
         id: 'actions',
         header: '',
         size: 80,
@@ -106,18 +113,27 @@ export function OutletsPage() {
             </DropdownItem>
           </DropdownMenu>
         ),
-      },
-    ],
-    [],
-  )
+      })
+    }
+
+    return base
+  }, [isReadOnly])
 
   const handleSave = async (data: OutletForm) => {
     try {
+      const payload: WholesaleFormData = {
+        name: data.name,
+        location: data.location ?? '',
+        manager: editing?.manager ?? null,
+        phone: data.phone ?? '',
+        is_active: data.is_active,
+      }
+
       if (editing) {
-        await updateOutlet.mutateAsync(data)
+        await updateOutlet.mutateAsync(payload)
         toast.success('Outlet updated')
       } else {
-        await createOutlet.mutateAsync(data as WholesaleFormData)
+        await createOutlet.mutateAsync(payload)
         toast.success('Outlet created')
       }
       setDialogOpen(false)
@@ -127,7 +143,7 @@ export function OutletsPage() {
         (err as { response?: { data?: Record<string, unknown> } })?.response?.data
       toast.error(msg ? JSON.stringify(msg) : 'Save failed')
     }
-  }
+}
 
   const handleDelete = async () => {
     if (!confirmDelete) return
@@ -142,15 +158,17 @@ export function OutletsPage() {
   return (
     <div>
       <div className="mb-4 flex justify-end">
-        <Button
-          onClick={() => {
-            setEditing(null)
-            setDialogOpen(true)
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          New Outlet
-        </Button>
+        <WriteOnly>
+          <Button
+            onClick={() => {
+              setEditing(null)
+              setDialogOpen(true)
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            New Outlet
+          </Button>
+        </WriteOnly>
       </div>
 
       <DataTable
@@ -161,14 +179,19 @@ export function OutletsPage() {
         emptyDescription="Create your first outlet to start tracking stock."
       />
 
-      <OutletDialog
-        key={editing?.id ?? 'new'}
-        open={dialogOpen}
-        onClose={() => { setDialogOpen(false); setEditing(null) }}
-        onSubmit={handleSave}
-        initial={editing}
-        loading={createOutlet.isPending || updateOutlet.isPending}
+      {dialogOpen && (
+        <OutletDialog
+          key={editing?.id ?? 'new'}
+          open={dialogOpen}
+          onClose={() => {
+            setDialogOpen(false)
+            setEditing(null)
+          }}
+          onSubmit={handleSave}
+          initial={editing}
+          loading={createOutlet.isPending || updateOutlet.isPending}
         />
+      )}
 
       <ConfirmDialog
         open={Boolean(confirmDelete)}
@@ -188,7 +211,7 @@ export function OutletsPage() {
 }
 
 // ---------------------------------------------------------------------------
-// Dialog with RHF form
+// Dialog
 // ---------------------------------------------------------------------------
 
 function OutletDialog({
@@ -208,8 +231,7 @@ function OutletDialog({
     register,
     handleSubmit,
     formState: { errors },
-    reset,
-  } = useForm({
+  } = useForm<OutletForm>({
     resolver: zodResolver(outletSchema),
     defaultValues: {
       name: initial?.name ?? '',
@@ -218,12 +240,7 @@ function OutletDialog({
       is_active: initial?.is_active ?? true,
     },
   })
-
-  // Reset the form whenever the dialog opens or the initial record changes
-  if (open && initial && initial.name !== undefined) {
-    // no-op: rely on key prop in parent to remount
-  }
-
+ 
   return (
     <Dialog
       open={open}

@@ -1,6 +1,19 @@
+from decimal import Decimal, InvalidOperation
+
 from django.db import models
 from django.conf import settings
-from decimal import Decimal
+
+
+def to_decimal(value, default=Decimal('0.00')):
+    """Safely convert a value (str, int, float, Decimal, None) to Decimal."""
+    if value is None or value == '':
+        return default
+    if isinstance(value, Decimal):
+        return value
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, ValueError, TypeError):
+        return default
 
 
 class Farmer(models.Model):
@@ -54,15 +67,19 @@ class ProducePurchase(models.Model):
     )
     quantity_kg = models.DecimalField(max_digits=12, decimal_places=2)
     price_per_kg = models.DecimalField(max_digits=10, decimal_places=2)
-    total_amount = models.DecimalField(max_digits=14, decimal_places=2, editable=False)
-    amount_paid = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal('0.00'))
+    total_amount = models.DecimalField(
+        max_digits=14, decimal_places=2, editable=False, default=Decimal('0.00'),
+    )
+    amount_paid = models.DecimalField(
+        max_digits=14, decimal_places=2, default=Decimal('0.00'),
+    )
     payment_status = models.CharField(
         max_length=10, choices=PAYMENT_STATUS, default='pending'
     )
     purchase_date = models.DateField()
     recorded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True,
-        on_delete=models.SET_NULL
+        on_delete=models.SET_NULL,
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -70,16 +87,24 @@ class ProducePurchase(models.Model):
         ordering = ['-purchase_date', '-created_at']
 
     def save(self, *args, **kwargs):
-        self.total_amount = (self.quantity_kg or 0) * (self.price_per_kg or 0)
-        if self.amount_paid >= self.total_amount and self.total_amount > 0:
+        qty = to_decimal(self.quantity_kg)
+        price = to_decimal(self.price_per_kg)
+        paid = to_decimal(self.amount_paid)
+
+        self.total_amount = qty * price
+
+        if paid >= self.total_amount and self.total_amount > 0:
             self.payment_status = 'paid'
-        elif self.amount_paid > 0:
+        elif paid > 0:
             self.payment_status = 'partial'
+        else:
+            self.payment_status = 'pending'
+
         super().save(*args, **kwargs)
 
     @property
     def balance(self):
-        return (self.total_amount or 0) - (self.amount_paid or 0)
+        return to_decimal(self.total_amount) - to_decimal(self.amount_paid)
 
     def __str__(self):
         return f"{self.crop} {self.quantity_kg}kg from {self.farmer}"
@@ -99,14 +124,16 @@ class ProductionBatch(models.Model):
     raw_material_qty_kg = models.DecimalField(max_digits=12, decimal_places=2)
     finished_product_name = models.CharField(max_length=100, blank=True)
     finished_product_qty_kg = models.DecimalField(
-        max_digits=12, decimal_places=2, null=True, blank=True
+        max_digits=12, decimal_places=2, null=True, blank=True,
     )
     yield_percentage = models.DecimalField(
-        max_digits=6, decimal_places=2, null=True, blank=True, editable=False
+        max_digits=6, decimal_places=2, null=True, blank=True, editable=False,
     )
     start_date = models.DateField()
     completion_date = models.DateField(null=True, blank=True)
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='planned')
+    status = models.CharField(
+        max_length=15, choices=STATUS_CHOICES, default='planned',
+    )
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -115,46 +142,15 @@ class ProductionBatch(models.Model):
         verbose_name_plural = 'Production batches'
 
     def save(self, *args, **kwargs):
-        if (self.raw_material_qty_kg and self.finished_product_qty_kg
-                and self.raw_material_qty_kg > 0):
-            self.yield_percentage = round(
-                (self.finished_product_qty_kg / self.raw_material_qty_kg) * 100, 2
-            )
+        raw = to_decimal(self.raw_material_qty_kg)
+        finished = to_decimal(self.finished_product_qty_kg)
+
+        if raw > 0 and finished > 0:
+            self.yield_percentage = round((finished / raw) * 100, 2)
+        else:
+            self.yield_percentage = None
+
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.batch_number} ({self.status})"
-
-
-class PendingCollection(models.Model):
-    """Hardware layby — paid-for goods awaiting pickup."""
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('ready', 'Ready for Collection'),
-        ('collected', 'Collected'),
-        ('cancelled', 'Cancelled'),
-    ]
-
-    customer_name = models.CharField(max_length=150)
-    customer_phone = models.CharField(max_length=20, blank=True)
-    description = models.TextField(help_text="What was bought / reserved")
-    total_price = models.DecimalField(max_digits=14, decimal_places=2)
-    amount_paid = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal('0.00'))
-    balance = models.DecimalField(max_digits=14, decimal_places=2, editable=False, default=Decimal('0.00'))
-    collection_deadline = models.DateField(null=True, blank=True)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
-    recorded_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True,
-        on_delete=models.SET_NULL
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def save(self, *args, **kwargs):
-        self.balance = (self.total_price or 0) - (self.amount_paid or 0)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.customer_name} — {self.status} ({self.balance} owing)"

@@ -11,5 +11,13 @@ export function useRole() {
 
   const isSuperuser = user?.is_superuser ?? false
 
-  return { user, hasRole, hasAnyRole, isSuperuser }
+  const isAuditor = hasRole('auditor') && !isSuperuser
+  const canWrite = (module: string) => {
+    if (isSuperuser) return true
+    if (isAuditor) return false
+    return true   // role-specific checks handled per page
+  }
+
+  return { user, hasRole, hasAnyRole, isSuperuser, isAuditor, canWrite }
 }
+

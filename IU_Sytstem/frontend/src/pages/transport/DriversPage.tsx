@@ -15,6 +15,7 @@ import { DataTable } from '@/components/shared/DataTable'
 import { FilterBar } from '@/components/shared/FilterBar'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { WriteOnly } from '@/components/guards/WriteOnly'
 import { Select } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import {
@@ -31,13 +32,10 @@ import {
   useLicenseClasses,
 } from '@/hooks/queries/useTransport'
 import { useUsers } from '@/hooks/queries/useCore'
+import { useIsReadOnly } from '@/hooks/useIsReadOnly'
 import { formatDate } from '@/lib/format'
 import type { Driver, DriverFormData, DriverStatus } from '@/types/transport'
 import { cn } from '@/lib/utils'
-
-// ---------------------------------------------------------------------------
-// Schema
-// ---------------------------------------------------------------------------
 
 const driverSchema = z.object({
   user: z.number().int().positive('Select a user'),
@@ -57,11 +55,9 @@ const STATUS_OPTIONS = [
   { value: 'suspended', label: 'Suspended' },
 ]
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
-
 export function DriversPage() {
+  const isReadOnly = useIsReadOnly()
+
   const [statusFilter, setStatusFilter] = useState('')
   const [search, setSearch] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -86,8 +82,8 @@ export function DriversPage() {
     )
   }, [drivers, search])
 
-  const columns = useMemo<MRT_ColumnDef<Driver>[]>(
-    () => [
+  const columns = useMemo<MRT_ColumnDef<Driver>[]>(() => {
+    const base: MRT_ColumnDef<Driver>[] = [
       {
         accessorKey: 'full_name',
         header: 'Driver',
@@ -106,9 +102,7 @@ export function DriversPage() {
         header: 'License',
         size: 140,
         Cell: ({ cell }) => (
-          <span className="font-mono text-sm">
-            {cell.getValue<string>()}
-          </span>
+          <span className="font-mono text-sm">{cell.getValue<string>()}</span>
         ),
       },
       {
@@ -170,7 +164,10 @@ export function DriversPage() {
         size: 120,
         Cell: ({ cell }) => <StatusBadge status={cell.getValue<string>()} />,
       },
-      {
+    ]
+
+    if (!isReadOnly) {
+      base.push({
         id: 'actions',
         header: '',
         size: 60,
@@ -205,10 +202,11 @@ export function DriversPage() {
             </DropdownItem>
           </DropdownMenu>
         ),
-      },
-    ],
-    [],
-  )
+      })
+    }
+
+    return base
+  }, [isReadOnly])
 
   const handleSave = async (data: DriverForm) => {
     try {
@@ -244,15 +242,17 @@ export function DriversPage() {
         <p className="text-sm text-slate-500">
           Drivers with license classes and PSV endorsements. Used for dispatch pairing.
         </p>
-        <Button
-          onClick={() => {
-            setEditing(null)
-            setDialogOpen(true)
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          New Driver
-        </Button>
+        <WriteOnly>
+          <Button
+            onClick={() => {
+              setEditing(null)
+              setDialogOpen(true)
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            New Driver
+          </Button>
+        </WriteOnly>
       </div>
 
       <FilterBar
@@ -319,10 +319,6 @@ export function DriversPage() {
   )
 }
 
-// ---------------------------------------------------------------------------
-// Dialog
-// ---------------------------------------------------------------------------
-
 function DriverDialog({
   open,
   onClose,
@@ -368,7 +364,6 @@ function DriverDialog({
     setValue('license_classes', next, { shouldValidate: true })
   }
 
-  // If user is already a driver (editing), filter them out of the "new" picker
   const userOptions = users
     .filter((u) => !initial || u.id === initial.user)
     .map((u) => ({
@@ -418,7 +413,6 @@ function DriverDialog({
           />
         </div>
 
-        {/* License classes */}
         <div>
           <label className="mb-2 block text-sm font-medium text-slate-700">
             License Classes <span className="text-red-500">*</span>
@@ -447,13 +441,7 @@ function DriverDialog({
                     )}
                   >
                     {checked && (
-                      <svg
-                        viewBox="0 0 12 12"
-                        className="h-3 w-3"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
+                      <svg viewBox="0 0 12 12" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M2 6l3 3 5-6" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}
@@ -473,7 +461,6 @@ function DriverDialog({
           )}
         </div>
 
-        {/* PSV checkbox */}
         <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
           <label className="flex items-start gap-3 cursor-pointer">
             <input

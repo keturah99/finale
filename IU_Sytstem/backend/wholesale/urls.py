@@ -7,6 +7,7 @@ from .views import (
     WholesaleDamageViewSet, InterWholesaleTransferViewSet,
     WeeklySalesViewSet, WeeklySalesCashInViewSet,
     WeeklySalesExpenseViewSet, WeeklySalesDamageViewSet,
+    PendingCollectionViewSet, WholesaleReportViewSet,
 )
 
 router = DefaultRouter()
@@ -20,6 +21,8 @@ router.register('weekly-sales', WeeklySalesViewSet)
 router.register('cash-ins', WeeklySalesCashInViewSet)
 router.register('expenses', WeeklySalesExpenseViewSet)
 router.register('weekly-damages', WeeklySalesDamageViewSet)
+router.register('collections', PendingCollectionViewSet)
+router.register('reports', WholesaleReportViewSet, basename='wholesale-reports')
 
 urlpatterns = [
     path('', include(router.urls)),

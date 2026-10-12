@@ -4,7 +4,7 @@ import { Select, type SelectProps } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 
-export interface FormSelectProps extends SelectProps {
+export interface FormSelectProps extends Omit<SelectProps, 'error'> {
   label?: string
   error?: FieldError | string
   required?: boolean
@@ -36,7 +36,9 @@ export const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
           ))}
         </Select>
         {errorMessage && (
-          <p className="mt-1 text-xs text-red-600">{errorMessage}</p>
+          <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+            {errorMessage}
+          </p>
         )}
       </div>
     )

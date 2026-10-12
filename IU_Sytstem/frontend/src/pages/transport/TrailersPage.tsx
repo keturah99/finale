@@ -15,6 +15,7 @@ import { DataTable } from '@/components/shared/DataTable'
 import { FilterBar } from '@/components/shared/FilterBar'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { WriteOnly } from '@/components/guards/WriteOnly'
 import { Select } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import {
@@ -29,6 +30,7 @@ import {
   useUpdateTrailer,
   useDeleteTrailer,
 } from '@/hooks/queries/useTransport'
+import { useIsReadOnly } from '@/hooks/useIsReadOnly'
 import type {
   Trailer,
   TrailerFormData,
@@ -36,14 +38,8 @@ import type {
   VehicleCategory,
 } from '@/types/transport'
 
-// ---------------------------------------------------------------------------
-// Schema
-// ---------------------------------------------------------------------------
-
 const trailerSchema = z.object({
-  registration_number: z
-    .string()
-    .regex(/^[A-Z]{3} \d{4}$/, 'Format: ABC 1234'),
+  registration_number: z.string().regex(/^[A-Z]{3} \d{4}$/, 'Format: ABC 1234'),
   make: z.string().min(1, 'Make required').max(50),
   tonnage: z.string().min(1, 'Tonnage required'),
   category: z.enum(['public', 'private']),
@@ -65,11 +61,9 @@ const STATUS_OPTIONS = [
   { value: 'retired', label: 'Retired' },
 ]
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
-
 export function TrailersPage() {
+  const isReadOnly = useIsReadOnly()
+
   const [statusFilter, setStatusFilter] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [search, setSearch] = useState('')
@@ -96,8 +90,8 @@ export function TrailersPage() {
     )
   }, [trailers, search])
 
-  const columns = useMemo<MRT_ColumnDef<Trailer>[]>(
-    () => [
+  const columns = useMemo<MRT_ColumnDef<Trailer>[]>(() => {
+    const base: MRT_ColumnDef<Trailer>[] = [
       {
         accessorKey: 'registration_number',
         header: 'Registration',
@@ -127,7 +121,10 @@ export function TrailersPage() {
         size: 120,
         Cell: ({ cell }) => <StatusBadge status={cell.getValue<string>()} />,
       },
-      {
+    ]
+
+    if (!isReadOnly) {
+      base.push({
         id: 'actions',
         header: '',
         size: 60,
@@ -162,10 +159,11 @@ export function TrailersPage() {
             </DropdownItem>
           </DropdownMenu>
         ),
-      },
-    ],
-    [],
-  )
+      })
+    }
+
+    return base
+  }, [isReadOnly])
 
   const handleSave = async (data: TrailerForm) => {
     try {
@@ -201,15 +199,17 @@ export function TrailersPage() {
         <p className="text-sm text-slate-500">
           Trailers for semi-trucks. Attached per-trip during dispatch.
         </p>
-        <Button
-          onClick={() => {
-            setEditing(null)
-            setDialogOpen(true)
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          New Trailer
-        </Button>
+        <WriteOnly>
+          <Button
+            onClick={() => {
+              setEditing(null)
+              setDialogOpen(true)
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            New Trailer
+          </Button>
+        </WriteOnly>
       </div>
 
       <FilterBar
@@ -290,10 +290,6 @@ export function TrailersPage() {
     </div>
   )
 }
-
-// ---------------------------------------------------------------------------
-// Dialog
-// ---------------------------------------------------------------------------
 
 function TrailerDialog({
   open,

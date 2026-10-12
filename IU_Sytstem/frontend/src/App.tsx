@@ -6,22 +6,39 @@ import CssBaseline from '@mui/material/CssBaseline'
 import { Toaster } from 'sonner'
 
 import { useAuthStore } from '@/stores/authStore'
-import { muiTheme } from '@/lib/theme'
+import { useThemeStore } from '@/stores/themeStore'
+import { useTheme } from '@/hooks/useTheme'
+import { lightTheme, darkTheme } from '@/lib/theme'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { RequireAuth } from '@/components/guards/RequireAuth'
 import { RequireGuest } from '@/components/guards/RequireGuest'
 import { AppShell } from '@/components/layout/AppShell'
 
-// ---------- Auth & core ----------
 import { Login } from '@/pages/auth/Login'
 import { Dashboard } from '@/pages/dashboard/Dashboard'
 import { Playground } from '@/pages/Playground'
 import { NotFound } from '@/pages/NotFound'
 
-// ---------- Public portal ----------
 import { PublicBookingPage } from '@/pages/portal/PublicBookingPage'
 
-// ---------- Wholesale ----------
+import { InventoryLayout } from '@/pages/inventory/InventoryLayout'
+import { ProductsPage } from '@/pages/inventory/ProductsPage'
+import { MovementsPage } from '@/pages/inventory/MovementsPage'
+import { AlertsPage } from '@/pages/inventory/AlertsPage'
+
+import { SupplyChainLayout } from '@/pages/supplychain/SupplyChainLayout'
+import { FarmersPage } from '@/pages/supplychain/FarmersPage'
+import { CropsPage } from '@/pages/supplychain/CropsPage'
+import { PurchasesPage } from '@/pages/supplychain/PurchasesPage'
+import { ProductionPage } from '@/pages/supplychain/ProductionPage'
+
+import { TransportLayout } from '@/pages/transport/TransportLayout'
+import { BookingsPage } from '@/pages/transport/BookingsPage'
+import { BookingDetailPage } from '@/pages/transport/BookingDetailPage'
+import { VehiclesPage } from '@/pages/transport/VehiclesPage'
+import { DriversPage } from '@/pages/transport/DriversPage'
+import { TrailersPage } from '@/pages/transport/TrailersPage'
+
 import { WholesaleLayout } from '@/pages/wholesale/WholesaleLayout'
 import { OutletsPage } from '@/pages/wholesale/OutletsPage'
 import { StockLevelsPage } from '@/pages/wholesale/StockLevelsPage'
@@ -32,18 +49,23 @@ import { TransfersPage } from '@/pages/wholesale/TransfersPage'
 import { TransferDetailPage } from '@/pages/wholesale/TransferDetailPage'
 import { WeeklySalesPage } from '@/pages/wholesale/WeeklySalesPage'
 import { WeeklySalesDetailPage } from '@/pages/wholesale/WeeklySalesDetailPage'
+import { LaybysPage } from '@/pages/wholesale/LaybysPage'
 
-// ---------- Transport ----------
-import { TransportLayout } from '@/pages/transport/TransportLayout'
-import { BookingsPage } from '@/pages/transport/BookingsPage'
-import { BookingDetailPage } from '@/pages/transport/BookingDetailPage'
-import { VehiclesPage } from '@/pages/transport/VehiclesPage'
-import { DriversPage } from '@/pages/transport/DriversPage'
-import { TrailersPage } from '@/pages/transport/TrailersPage'
+import { PayrollLayout } from '@/pages/payroll/PayrollLayout'
+import { SalariesPage } from '@/pages/payroll/SalariesPage'
+import { PayrollRunsPage } from '@/pages/payroll/PayrollRunsPage'
+import { PayrollRunDetailPage } from '@/pages/payroll/PayrollRunDetailPage'
+import { MyPayslipsPage } from '@/pages/payroll/MyPayslipsPage'
+import { BankExportsPage } from '@/pages/payroll/BankExportsPage'
 
-// ---------------------------------------------------------------------------
-// React Query client
-// ---------------------------------------------------------------------------
+import { ReportingLayout } from '@/pages/reporting/ReportingLayout'
+import { ReportCataloguePage } from '@/pages/reporting/ReportCataloguePage'
+import { ReportLogsPage } from '@/pages/reporting/ReportLogsPage'
+
+import { AdminLayout } from '@/pages/admin/AdminLayout'
+import { UsersPage } from '@/pages/admin/UsersPage'
+import { DepartmentsPage } from '@/pages/admin/DepartmentsPage'
+import { RolesPage } from '@/pages/admin/RolesPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,25 +77,25 @@ const queryClient = new QueryClient({
   },
 })
 
-// ---------------------------------------------------------------------------
-// App
-// ---------------------------------------------------------------------------
-
 export default function App() {
   const hydrate = useAuthStore((s) => s.hydrate)
+  const resolved = useThemeStore((s) => s.resolved)
+
+  useTheme() // applies the `dark` class and initialises the store
 
   useEffect(() => {
     hydrate()
   }, [hydrate])
 
+  const theme = resolved === 'dark' ? darkTheme : lightTheme
+
   return (
     <ErrorBoundary>
-      <ThemeProvider theme={muiTheme}>
+      <ThemeProvider theme={theme}>
         <CssBaseline />
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <Routes>
-              {/* ---------- Public routes ---------- */}
               <Route
                 path="/login"
                 element={
@@ -82,11 +104,8 @@ export default function App() {
                   </RequireGuest>
                 }
               />
-
-              {/* Customer-facing transport booking portal — no auth, no shell */}
               <Route path="/book" element={<PublicBookingPage />} />
 
-              {/* ---------- Protected app shell ---------- */}
               <Route
                 path="/"
                 element={
@@ -99,7 +118,30 @@ export default function App() {
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="playground" element={<Playground />} />
 
-                {/* ---------- Wholesale ---------- */}
+                <Route path="inventory" element={<InventoryLayout />}>
+                  <Route index element={<Navigate to="products" replace />} />
+                  <Route path="products" element={<ProductsPage />} />
+                  <Route path="movements" element={<MovementsPage />} />
+                  <Route path="alerts" element={<AlertsPage />} />
+                </Route>
+
+                <Route path="supply-chain" element={<SupplyChainLayout />}>
+                  <Route index element={<Navigate to="farmers" replace />} />
+                  <Route path="farmers" element={<FarmersPage />} />
+                  <Route path="crops" element={<CropsPage />} />
+                  <Route path="purchases" element={<PurchasesPage />} />
+                  <Route path="production" element={<ProductionPage />} />
+                </Route>
+
+                <Route path="transport" element={<TransportLayout />}>
+                  <Route index element={<Navigate to="bookings" replace />} />
+                  <Route path="bookings" element={<BookingsPage />} />
+                  <Route path="bookings/:id" element={<BookingDetailPage />} />
+                  <Route path="vehicles" element={<VehiclesPage />} />
+                  <Route path="drivers" element={<DriversPage />} />
+                  <Route path="trailers" element={<TrailersPage />} />
+                </Route>
+
                 <Route path="wholesale" element={<WholesaleLayout />}>
                   <Route index element={<Navigate to="outlets" replace />} />
                   <Route path="outlets" element={<OutletsPage />} />
@@ -110,35 +152,44 @@ export default function App() {
                   <Route path="transfers" element={<TransfersPage />} />
                   <Route path="transfers/:id" element={<TransferDetailPage />} />
                   <Route path="weekly-sales" element={<WeeklySalesPage />} />
-                  <Route
-                    path="weekly-sales/:id"
-                    element={<WeeklySalesDetailPage />}
-                  />
+                  <Route path="weekly-sales/:id" element={<WeeklySalesDetailPage />} />
+                  <Route path="laybys" element={<LaybysPage />} />
                 </Route>
 
-                {/* ---------- Transport ---------- */}
-                <Route path="transport" element={<TransportLayout />}>
-                  <Route index element={<Navigate to="bookings" replace />} />
-                  <Route path="bookings" element={<BookingsPage />} />
-                  <Route path="bookings/:id" element={<BookingDetailPage />} />
-                  <Route path="vehicles" element={<VehiclesPage />} />
-                  <Route path="drivers" element={<DriversPage />} />
-                  <Route path="trailers" element={<TrailersPage />} />
+                <Route path="payroll" element={<PayrollLayout />}>
+                  <Route index element={<Navigate to="salaries" replace />} />
+                  <Route path="salaries" element={<SalariesPage />} />
+                  <Route path="runs" element={<PayrollRunsPage />} />
+                  <Route path="runs/:id" element={<PayrollRunDetailPage />} />
+                  <Route path="payslips" element={<MyPayslipsPage />} />
+                  <Route path="bank-exports" element={<BankExportsPage />} />
                 </Route>
 
-                {/* ---------- Other modules (to be added) ---------- */}
-                {/* Inventory, Supply Chain, Payroll, Reporting, Admin */}
+                <Route path="reporting" element={<ReportingLayout />}>
+                  <Route index element={<Navigate to="catalogue" replace />} />
+                  <Route path="catalogue" element={<ReportCataloguePage />} />
+                  <Route path="logs" element={<ReportLogsPage />} />
+                </Route>
 
-                {/* ---------- Fallback inside the shell ---------- */}
+                <Route path="admin" element={<AdminLayout />}>
+                  <Route index element={<Navigate to="users" replace />} />
+                  <Route path="users" element={<UsersPage />} />
+                  <Route path="departments" element={<DepartmentsPage />} />
+                  <Route path="roles" element={<RolesPage />} />
+                </Route>
+
                 <Route path="*" element={<NotFound />} />
               </Route>
 
-              {/* ---------- Catch-all outside the shell ---------- */}
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </BrowserRouter>
 
-          <Toaster position="top-right" richColors />
+          <Toaster
+            position="top-right"
+            richColors
+            theme={resolved === 'dark' ? 'dark' : 'light'}
+          />
         </QueryClientProvider>
       </ThemeProvider>
     </ErrorBoundary>

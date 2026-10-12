@@ -14,35 +14,27 @@ import { FormCombobox } from '@/components/forms/FormCombobox'
 import { DataTable } from '@/components/shared/DataTable'
 import { FilterBar } from '@/components/shared/FilterBar'
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { WriteOnly } from '@/components/guards/WriteOnly'
 import { Select } from '@/components/ui/select'
 
-import {
-  useOutlets,
-  useWeeklySales,
-  useCreateWeeklySales,
-} from '@/hooks/queries/useWholesale'
+import { useWeeklySales, useCreateWeeklySales } from '@/hooks/queries/useWholesale'
+import { useScopedOutlets } from '@/hooks/useScopedOutlets'
 import { formatK } from '@/lib/format'
 import type { WeeklySales } from '@/types/wholesale'
 
-// ---------------------------------------------------------------------------
-// Form schema
-// ---------------------------------------------------------------------------
-
-const weeklySchema = z.object({
-  wholesale: z.number().int().positive(),
-  start_date: z.string().min(1, 'Start date required'),
-  end_date: z.string().min(1, 'End date required'),
-  notes: z.string().optional(),
-}).refine((d) => new Date(d.end_date) >= new Date(d.start_date), {
-  message: 'End date must be on or after start date',
-  path: ['end_date'],
-})
+const weeklySchema = z
+  .object({
+    wholesale: z.number().int().positive(),
+    start_date: z.string().min(1, 'Start date required'),
+    end_date: z.string().min(1, 'End date required'),
+    notes: z.string().optional(),
+  })
+  .refine((d) => new Date(d.end_date) >= new Date(d.start_date), {
+    message: 'End date must be on or after start date',
+    path: ['end_date'],
+  })
 
 type WeeklyForm = z.infer<typeof weeklySchema>
-
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
 
 export function WeeklySalesPage() {
   const navigate = useNavigate()
@@ -50,7 +42,7 @@ export function WeeklySalesPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  const { data: outlets = [] } = useOutlets()
+  const { outlets } = useScopedOutlets()
   const { data: cycles = [], isLoading } = useWeeklySales({
     ...(outletFilter ? { wholesale: outletFilter } : {}),
     ...(statusFilter ? { status: statusFilter } : {}),
@@ -132,10 +124,12 @@ export function WeeklySalesPage() {
           Track weekly sales cycles. Cash, expenses, and damages are recorded
           per cycle; week numbers auto-increment per outlet.
         </p>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4" />
-          Open New Cycle
-        </Button>
+        <WriteOnly>
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Open New Cycle
+          </Button>
+        </WriteOnly>
       </div>
 
       <FilterBar
@@ -177,30 +171,28 @@ export function WeeklySalesPage() {
         emptyDescription="Click 'Open New Cycle' to start your first week."
       />
 
-      <NewCycleDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        outlets={outlets}
-        onSubmit={async (data) => {
-          try {
-            await createCycle.mutateAsync(data as Partial<WeeklySales>)
-            toast.success('Cycle opened — week number auto-assigned')
-            setDialogOpen(false)
-          } catch (err) {
-            const msg =
-              (err as { response?: { data?: unknown } })?.response?.data
-            toast.error(msg ? JSON.stringify(msg) : 'Failed to open cycle')
-          }
-        }}
-        loading={createCycle.isPending}
-      />
+      {dialogOpen && (
+        <NewCycleDialog
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          outlets={outlets}
+          onSubmit={async (data) => {
+            try {
+              await createCycle.mutateAsync(data as Partial<WeeklySales>)
+              toast.success('Cycle opened — week number auto-assigned')
+              setDialogOpen(false)
+            } catch (err) {
+              const msg =
+                (err as { response?: { data?: unknown } })?.response?.data
+              toast.error(msg ? JSON.stringify(msg) : 'Failed to open cycle')
+            }
+          }}
+          loading={createCycle.isPending}
+        />
+      )}
     </div>
   )
 }
-
-// ---------------------------------------------------------------------------
-// Dialog
-// ---------------------------------------------------------------------------
 
 function NewCycleDialog({
   open,
@@ -215,7 +207,6 @@ function NewCycleDialog({
   onSubmit: (data: WeeklyForm) => void | Promise<void>
   loading: boolean
 }) {
-  // Default to 7-day window starting today
   const today = new Date().toISOString().slice(0, 10)
   const nextWeek = new Date(Date.now() + 6 * 86400000)
     .toISOString()

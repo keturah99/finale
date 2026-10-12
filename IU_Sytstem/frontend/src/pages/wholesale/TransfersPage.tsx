@@ -11,11 +11,11 @@ import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { FormField } from '@/components/forms/FormField'
 import { FormCombobox } from '@/components/forms/FormCombobox'
-import { FormSelect } from '@/components/forms/FormSelect'
 import { CurrencyInput } from '@/components/shared/CurrencyInput'
 import { DataTable } from '@/components/shared/DataTable'
 import { FilterBar } from '@/components/shared/FilterBar'
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { WriteOnly } from '@/components/guards/WriteOnly'
 import { Select } from '@/components/ui/select'
 
 import {
@@ -23,32 +23,27 @@ import {
   useTransfers,
   useCreateTransfer,
 } from '@/hooks/queries/useWholesale'
+import { useScopedOutlets } from '@/hooks/useScopedOutlets'
 import { useProducts } from '@/hooks/queries/useInventory'
 import { formatK, formatDateTime } from '@/lib/format'
 import type { Transfer } from '@/types/wholesale'
 
-// ---------------------------------------------------------------------------
-// Form schema
-// ---------------------------------------------------------------------------
-
-const transferSchema = z.object({
-  from_wholesale: z.number().int().positive(),
-  to_wholesale: z.number().int().positive(),
-  product: z.number().int().positive(),
-  quantity: z.number().int().positive('Quantity must be > 0'),
-  unit_value: z.string().min(1, 'Cost required'),
-  reference: z.string().max(80).optional(),
-  notes: z.string().optional(),
-}).refine((d) => d.from_wholesale !== d.to_wholesale, {
-  message: 'Source and destination must differ',
-  path: ['to_wholesale'],
-})
+const transferSchema = z
+  .object({
+    from_wholesale: z.number().int().positive(),
+    to_wholesale: z.number().int().positive(),
+    product: z.number().int().positive(),
+    quantity: z.number().int().positive('Quantity must be > 0'),
+    unit_value: z.string().min(1, 'Cost required'),
+    reference: z.string().max(80).optional(),
+    notes: z.string().optional(),
+  })
+  .refine((d) => d.from_wholesale !== d.to_wholesale, {
+    message: 'Source and destination must differ',
+    path: ['to_wholesale'],
+  })
 
 type TransferForm = z.infer<typeof transferSchema>
-
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
 
 export function TransfersPage() {
   const navigate = useNavigate()
@@ -56,7 +51,8 @@ export function TransfersPage() {
   const [fromFilter, setFromFilter] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  const { data: outlets = [] } = useOutlets()
+  const { outlets: scopedOutlets } = useScopedOutlets()
+  const { data: allOutlets = [] } = useOutlets()
   const { data: products = [] } = useProducts()
 
   const { data: transfers = [], isLoading } = useTransfers({
@@ -113,10 +109,12 @@ export function TransfersPage() {
           Move stock between outlets. Source is decremented on approval;
           destination receives on receipt.
         </p>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4" />
-          New Transfer
-        </Button>
+        <WriteOnly>
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            New Transfer
+          </Button>
+        </WriteOnly>
       </div>
 
       <FilterBar
@@ -144,7 +142,7 @@ export function TransfersPage() {
           className="w-56"
         >
           <option value="">Any source</option>
-          {outlets.map((o) => (
+          {scopedOutlets.map((o) => (
             <option key={o.id} value={o.id}>
               From: {o.name}
             </option>
@@ -161,45 +159,46 @@ export function TransfersPage() {
         emptyDescription="Create your first inter-wholesale transfer."
       />
 
-      <TransferDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        outlets={outlets}
-        products={products}
-        onSubmit={async (data) => {
-          try {
-            await createTransfer.mutateAsync(data as Partial<Transfer>)
-            toast.success('Transfer created')
-            setDialogOpen(false)
-          } catch (err) {
-            const msg =
-              (err as { response?: { data?: unknown } })?.response?.data
-            toast.error(msg ? JSON.stringify(msg) : 'Failed to save')
-          }
-        }}
-        loading={createTransfer.isPending}
-      />
+      {dialogOpen && (
+        <TransferDialog
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          fromOutlets={scopedOutlets}
+          toOutlets={allOutlets}
+          products={products}
+          onSubmit={async (data) => {
+            try {
+              await createTransfer.mutateAsync(data as Partial<Transfer>)
+              toast.success('Transfer created')
+              setDialogOpen(false)
+            } catch (err) {
+              const msg =
+                (err as { response?: { data?: unknown } })?.response?.data
+              toast.error(msg ? JSON.stringify(msg) : 'Failed to save')
+            }
+          }}
+          loading={createTransfer.isPending}
+        />
+      )}
     </div>
   )
 }
 
-// ---------------------------------------------------------------------------
-// Dialog
-// ---------------------------------------------------------------------------
-
 function TransferDialog({
   open,
   onClose,
-  outlets,
+  fromOutlets,
+  toOutlets,
   products,
   onSubmit,
   loading,
 }: {
   open: boolean
   onClose: () => void
-  outlets: { id: number; name: string }[]
+  fromOutlets: { id: number; name: string }[]
+  toOutlets: { id: number; name: string }[]
   products: { id: number; sku: string; name: string }[]
-  onSubmit: (data: TransferForm) => void | Promise<void>
+  onSubmit: (d: TransferForm) => void | Promise<void>
   loading: boolean
 }) {
   const {
@@ -212,8 +211,8 @@ function TransferDialog({
   } = useForm<TransferForm>({
     resolver: zodResolver(transferSchema),
     defaultValues: {
-      from_wholesale: outlets[0]?.id ?? 0,
-      to_wholesale: outlets[1]?.id ?? 0,
+      from_wholesale: fromOutlets[0]?.id ?? 0,
+      to_wholesale: toOutlets[1]?.id ?? 0,
       product: 0,
       quantity: 0,
       unit_value: '',
@@ -252,7 +251,7 @@ function TransferDialog({
               <FormCombobox
                 label="From"
                 required
-                options={outlets.map((o) => ({ value: o.id, label: o.name }))}
+                options={fromOutlets.map((o) => ({ value: o.id, label: o.name }))}
                 value={field.value || null}
                 onChange={(v) => field.onChange(Number(v) || 0)}
                 error={errors.from_wholesale}
@@ -266,7 +265,7 @@ function TransferDialog({
               <FormCombobox
                 label="To"
                 required
-                options={outlets.map((o) => ({ value: o.id, label: o.name }))}
+                options={toOutlets.map((o) => ({ value: o.id, label: o.name }))}
                 value={field.value || null}
                 onChange={(v) => field.onChange(Number(v) || 0)}
                 error={errors.to_wholesale}

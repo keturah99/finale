@@ -4,9 +4,16 @@
 
 @layer base {
   html, body, #root {
-    height: 100%;
+    @apply h-full;
   }
   body {
-    @apply antialiased;
+    @apply antialiased bg-slate-50 text-slate-900;
+    @apply dark:bg-slate-950 dark:text-slate-100;
   }
+
+  /* Scrollbar tuning */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded; }
+  .dark ::-webkit-scrollbar-thumb { @apply bg-slate-700; }
 }

@@ -44,19 +44,21 @@ export function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50">
-      <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 dark:bg-slate-950">
+      <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <div className="mb-6 flex flex-col items-center">
-          <ClipboardList className="mb-2 h-10 w-10 text-brand-500" />
-          <h1 className="text-lg font-semibold text-slate-800">
+          <ClipboardList className="mb-2 h-10 w-10 text-brand-500 dark:text-brand-400" />
+          <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
             Integrated Unified System
           </h1>
-          <p className="text-sm text-slate-500">Sign in to continue</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Sign in to continue
+          </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Username
             </label>
             <input
@@ -65,20 +67,24 @@ export function Login() {
               autoFocus
               {...register('username')}
               className={cn(
-                'w-full rounded-md border px-3 py-2 text-sm outline-none transition',
+                'w-full rounded-md border bg-white px-3 py-2 text-sm outline-none transition',
+                'text-slate-900 placeholder:text-slate-400',
                 'focus:border-brand-500 focus:ring-1 focus:ring-brand-500',
-                errors.username ? 'border-red-400' : 'border-slate-300',
+                'dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500',
+                errors.username
+                  ? 'border-red-400 dark:border-red-500'
+                  : 'border-slate-300 dark:border-slate-600',
               )}
             />
             {errors.username && (
-              <p className="mt-1 text-xs text-red-600">
+              <p className="mt-1 text-xs text-red-600 dark:text-red-400">
                 {errors.username.message}
               </p>
             )}
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Password
             </label>
             <input
@@ -86,13 +92,17 @@ export function Login() {
               autoComplete="current-password"
               {...register('password')}
               className={cn(
-                'w-full rounded-md border px-3 py-2 text-sm outline-none transition',
+                'w-full rounded-md border bg-white px-3 py-2 text-sm outline-none transition',
+                'text-slate-900 placeholder:text-slate-400',
                 'focus:border-brand-500 focus:ring-1 focus:ring-brand-500',
-                errors.password ? 'border-red-400' : 'border-slate-300',
+                'dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500',
+                errors.password
+                  ? 'border-red-400 dark:border-red-500'
+                  : 'border-slate-300 dark:border-slate-600',
               )}
             />
             {errors.password && (
-              <p className="mt-1 text-xs text-red-600">
+              <p className="mt-1 text-xs text-red-600 dark:text-red-400">
                 {errors.password.message}
               </p>
             )}

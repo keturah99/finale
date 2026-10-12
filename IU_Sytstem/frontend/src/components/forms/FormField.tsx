@@ -4,7 +4,7 @@ import { Input, type InputProps } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 
-export interface FormFieldProps extends InputProps {
+export interface FormFieldProps extends Omit<InputProps, 'error'> {
   label?: string
   error?: FieldError | string
   description?: string
@@ -33,10 +33,14 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
           {...props}
         />
         {description && !errorMessage && (
-          <p className="mt-1 text-xs text-slate-500">{description}</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            {description}
+          </p>
         )}
         {errorMessage && (
-          <p className="mt-1 text-xs text-red-600">{errorMessage}</p>
+          <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+            {errorMessage}
+          </p>
         )}
       </div>
     )

@@ -6,7 +6,8 @@ import { DataTable } from '@/components/shared/DataTable'
 import { Select } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { FilterBar } from '@/components/shared/FilterBar'
-import { useOutlets, useStockLevels } from '@/hooks/queries/useWholesale'
+import { useStockLevels } from '@/hooks/queries/useWholesale'
+import { useScopedOutlets } from '@/hooks/useScopedOutlets'
 import { formatK, formatDateTime } from '@/lib/format'
 import type { StockLevel } from '@/types/wholesale'
 
@@ -15,8 +16,8 @@ export function StockLevelsPage() {
   const [search, setSearch] = useState('')
   const [lowOnly, setLowOnly] = useState(false)
 
-  const { data: outlets = [] } = useOutlets()
-
+  const { outlets } = useScopedOutlets()
+  
   const { data: levels = [], isLoading } = useStockLevels(
     wholesaleFilter ? { wholesale: Number(wholesaleFilter) } : undefined,
   )

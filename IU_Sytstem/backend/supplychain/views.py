@@ -3,23 +3,28 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from core.permissions import RolePermission
-from core.roles import SUPPLY_CHAIN_OFFICER
+from core.roles import SUPPLY_CHAIN_OFFICER, AUDITOR
 
-from .models import (
-    Farmer, Crop, ProducePurchase, ProductionBatch, PendingCollection
-)
+from .models import Farmer, Crop, ProducePurchase, ProductionBatch
 from .serializers import (
-    FarmerSerializer, CropSerializer, ProducePurchaseSerializer,
-    ProductionBatchSerializer, PendingCollectionSerializer,
+    FarmerSerializer, CropSerializer,
+    ProducePurchaseSerializer, ProductionBatchSerializer,
 )
 
+READ_ROLES = [SUPPLY_CHAIN_OFFICER, AUDITOR]
+WRITE_ROLES = [SUPPLY_CHAIN_OFFICER]
+
+
+# ---------------------------------------------------------------------------
+# Farmers
+# ---------------------------------------------------------------------------
 
 class FarmerViewSet(viewsets.ModelViewSet):
     queryset = Farmer.objects.all()
     serializer_class = FarmerSerializer
     permission_classes = [RolePermission]
-    read_roles = [SUPPLY_CHAIN_OFFICER]
-    write_roles = [SUPPLY_CHAIN_OFFICER]
+    read_roles = READ_ROLES
+    write_roles = WRITE_ROLES
 
     @action(detail=True, methods=['get'])
     def purchases(self, request, pk=None):
@@ -28,20 +33,28 @@ class FarmerViewSet(viewsets.ModelViewSet):
         return Response(ProducePurchaseSerializer(qs, many=True).data)
 
 
+# ---------------------------------------------------------------------------
+# Crops
+# ---------------------------------------------------------------------------
+
 class CropViewSet(viewsets.ModelViewSet):
     queryset = Crop.objects.all()
     serializer_class = CropSerializer
     permission_classes = [RolePermission]
-    read_roles = [SUPPLY_CHAIN_OFFICER]
-    write_roles = [SUPPLY_CHAIN_OFFICER]
+    read_roles = READ_ROLES
+    write_roles = WRITE_ROLES
 
+
+# ---------------------------------------------------------------------------
+# Produce purchases
+# ---------------------------------------------------------------------------
 
 class ProducePurchaseViewSet(viewsets.ModelViewSet):
     queryset = ProducePurchase.objects.select_related('farmer', 'crop').all()
     serializer_class = ProducePurchaseSerializer
     permission_classes = [RolePermission]
-    read_roles = [SUPPLY_CHAIN_OFFICER]
-    write_roles = [SUPPLY_CHAIN_OFFICER]
+    read_roles = READ_ROLES
+    write_roles = WRITE_ROLES
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -57,12 +70,16 @@ class ProducePurchaseViewSet(viewsets.ModelViewSet):
         serializer.save(recorded_by=self.request.user)
 
 
+# ---------------------------------------------------------------------------
+# Production batches
+# ---------------------------------------------------------------------------
+
 class ProductionBatchViewSet(viewsets.ModelViewSet):
     queryset = ProductionBatch.objects.all()
     serializer_class = ProductionBatchSerializer
     permission_classes = [RolePermission]
-    read_roles = [SUPPLY_CHAIN_OFFICER]
-    write_roles = [SUPPLY_CHAIN_OFFICER]
+    read_roles = READ_ROLES
+    write_roles = WRITE_ROLES
 
     @action(detail=True, methods=['post'])
     def complete(self, request, pk=None):
@@ -79,28 +96,3 @@ class ProductionBatchViewSet(viewsets.ModelViewSet):
         batch.status = 'completed'
         batch.save()
         return Response(ProductionBatchSerializer(batch).data)
-
-
-class PendingCollectionViewSet(viewsets.ModelViewSet):
-    queryset = PendingCollection.objects.all()
-    serializer_class = PendingCollectionSerializer
-    permission_classes = [RolePermission]
-    read_roles = [SUPPLY_CHAIN_OFFICER]
-    write_roles = [SUPPLY_CHAIN_OFFICER]
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        status = self.request.query_params.get('status')
-        if status:
-            qs = qs.filter(status=status)
-        return qs
-
-    def perform_create(self, serializer):
-        serializer.save(recorded_by=self.request.user)
-
-    @action(detail=True, methods=['post'])
-    def mark_collected(self, request, pk=None):
-        obj = self.get_object()
-        obj.status = 'collected'
-        obj.save()
-        return Response({'status': 'collected'})

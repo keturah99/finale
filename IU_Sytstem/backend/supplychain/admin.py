@@ -1,7 +1,5 @@
 from django.contrib import admin
-from .models import (
-    Farmer, Crop, ProducePurchase, ProductionBatch, PendingCollection
-)
+from .models import Farmer, Crop, ProducePurchase, ProductionBatch
 
 
 @admin.register(Farmer)
@@ -33,12 +31,3 @@ class ProductionBatchAdmin(admin.ModelAdmin):
     list_filter = ('status', 'start_date')
     search_fields = ('batch_number', 'raw_material_name', 'finished_product_name')
     readonly_fields = ('yield_percentage',)
-
-
-@admin.register(PendingCollection)
-class PendingCollectionAdmin(admin.ModelAdmin):
-    list_display = ('customer_name', 'total_price', 'amount_paid',
-                    'balance', 'status', 'collection_deadline')
-    list_filter = ('status', 'collection_deadline')
-    search_fields = ('customer_name', 'customer_phone')
-    readonly_fields = ('balance',)

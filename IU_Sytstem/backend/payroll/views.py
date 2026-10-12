@@ -14,6 +14,7 @@ from .serializers import (
 )
 from .services import run_payroll, generate_payslip_pdf, generate_bank_export_csv
 
+from .services import generate_payslip_pdf, run_payroll, generate_bank_export_csv
 
 class SalaryStructureViewSet(viewsets.ModelViewSet):
     queryset = SalaryStructure.objects.select_related('employee').all()
@@ -79,17 +80,56 @@ class PayrollRunViewSet(viewsets.ModelViewSet):
 
 
 class PayrollRecordViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = PayrollRecord.objects.select_related('employee', 'payroll_run').all()
+    """
+    Read-only view over PayrollRecord.
+
+    A payroll officer sees all records.
+    Any authenticated user can fetch their own via the `mine` action.
+    """
+    queryset = PayrollRecord.objects.select_related(
+        'employee', 'payroll_run'
+    ).all()
     serializer_class = PayrollRecordSerializer
     permission_classes = [RolePermission]
-    read_roles = [PAYROLL_OFFICER ]
+    read_roles = [PAYROLL_OFFICER]
 
-    @action(detail=True, methods=['get'])
+    @action(
+        detail=False,
+        methods=['get'],
+        url_path='mine',
+        permission_classes=[IsAuthenticated],
+    )
+    def mine(self, request):
+        """Return only the records belonging to the current user."""
+        qs = self.get_queryset().filter(employee=request.user)
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=['get'],
+        permission_classes=[IsAuthenticated],
+    )
     def payslip(self, request, pk=None):
+        """Download a PDF payslip for a single record."""
         record = self.get_object()
+        user = request.user
+
+        is_officer = user.roles.filter(name=PAYROLL_OFFICER).exists()
+        is_owner = record.employee_id == user.id
+
+        if not (user.is_superuser or is_officer or is_owner):
+            return Response(
+                {'error': 'You may only download your own payslip'},
+                status=403,
+            )
+
         pdf = generate_payslip_pdf(record)
+        filename = (
+            f"payslip_{record.employee.username}_"
+            f"{record.payroll_run.period_label}.pdf"
+        )
         response = HttpResponse(pdf, content_type='application/pdf')
-        filename = f"payslip_{record.employee.username}_{record.payroll_run.period_label}.pdf"
         response['Content-Disposition'] = f'inline; filename="{filename}"'
         return response
 

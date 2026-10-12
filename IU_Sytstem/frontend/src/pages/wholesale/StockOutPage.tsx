@@ -13,22 +13,19 @@ import { FormCombobox } from '@/components/forms/FormCombobox'
 import { CurrencyInput } from '@/components/shared/CurrencyInput'
 import { DataTable } from '@/components/shared/DataTable'
 import { FilterBar } from '@/components/shared/FilterBar'
+import { WriteOnly } from '@/components/guards/WriteOnly'
 import { Select } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 
 import {
-  useOutlets,
   useStockLevels,
   useStockOuts,
   useCreateStockOut,
 } from '@/hooks/queries/useWholesale'
+import { useScopedOutlets } from '@/hooks/useScopedOutlets'
 import { useProducts } from '@/hooks/queries/useInventory'
 import { formatK, formatDateTime } from '@/lib/format'
 import type { StockOut } from '@/types/wholesale'
-
-// ---------------------------------------------------------------------------
-// Form schema
-// ---------------------------------------------------------------------------
 
 const stockOutSchema = z.object({
   wholesale: z.number().int().positive(),
@@ -40,16 +37,12 @@ const stockOutSchema = z.object({
 
 type StockOutForm = z.infer<typeof stockOutSchema>
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
-
 export function StockOutPage() {
   const [wholesaleFilter, setWholesaleFilter] = useState('')
   const [search, setSearch] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  const { data: outlets = [] } = useOutlets()
+  const { outlets } = useScopedOutlets()
   const { data: products = [] } = useProducts()
 
   const { data: stockOuts = [], isLoading } = useStockOuts(
@@ -112,10 +105,12 @@ export function StockOutPage() {
         <p className="text-sm text-slate-500">
           Issue stock to sales or direct buyers. Stock level is decremented automatically.
         </p>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4" />
-          New Stock Out
-        </Button>
+        <WriteOnly>
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            New Stock Out
+          </Button>
+        </WriteOnly>
       </div>
 
       <FilterBar
@@ -153,31 +148,29 @@ export function StockOutPage() {
         emptyDescription="Click 'New Stock Out' to issue stock."
       />
 
-      <StockOutDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        outlets={outlets}
-        products={products}
-        onSubmit={async (data) => {
-          try {
-            await createStockOut.mutateAsync(data as Partial<StockOut>)
-            toast.success('Stock issued')
-            setDialogOpen(false)
-          } catch (err) {
-            const msg =
-              (err as { response?: { data?: unknown } })?.response?.data
-            toast.error(msg ? JSON.stringify(msg) : 'Failed to save')
-          }
-        }}
-        loading={createStockOut.isPending}
-      />
+      {dialogOpen && (
+        <StockOutDialog
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          outlets={outlets}
+          products={products}
+          onSubmit={async (data) => {
+            try {
+              await createStockOut.mutateAsync(data as Partial<StockOut>)
+              toast.success('Stock issued')
+              setDialogOpen(false)
+            } catch (err) {
+              const msg =
+                (err as { response?: { data?: unknown } })?.response?.data
+              toast.error(msg ? JSON.stringify(msg) : 'Failed to save')
+            }
+          }}
+          loading={createStockOut.isPending}
+        />
+      )}
     </div>
   )
 }
-
-// ---------------------------------------------------------------------------
-// Dialog
-// ---------------------------------------------------------------------------
 
 function StockOutDialog({
   open,

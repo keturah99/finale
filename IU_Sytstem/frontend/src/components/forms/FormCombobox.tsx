@@ -56,19 +56,33 @@ export function FormCombobox({
           onClick={() => setOpen((v) => !v)}
           className={cn(
             'flex h-9 w-full items-center justify-between rounded-md border bg-white px-3 text-left text-sm outline-none transition',
+            'text-slate-900',
             'focus:border-brand-500 focus:ring-1 focus:ring-brand-500',
-            errorMessage ? 'border-red-400' : 'border-slate-300',
+            'dark:bg-slate-800 dark:text-slate-100',
+            errorMessage
+              ? 'border-red-400 dark:border-red-500'
+              : 'border-slate-300 dark:border-slate-600',
           )}
         >
-          <span className={cn('truncate', !selected && 'text-slate-400')}>
+          <span
+            className={cn(
+              'truncate',
+              !selected && 'text-slate-400 dark:text-slate-500',
+            )}
+          >
             {selected ? selected.label : placeholder}
           </span>
-          <ChevronsUpDown className="h-4 w-4 shrink-0 text-slate-400" />
+          <ChevronsUpDown className="h-4 w-4 shrink-0 text-slate-400 dark:text-slate-500" />
         </button>
 
         {open && (
-          <div className="absolute z-30 mt-1 w-full rounded-md border border-slate-200 bg-white shadow-lg">
-            <div className="border-b border-slate-100 p-1.5">
+          <div
+            className={cn(
+              'absolute z-30 mt-1 w-full rounded-md border shadow-lg',
+              'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800',
+            )}
+          >
+            <div className="border-b border-slate-100 p-1.5 dark:border-slate-700">
               <Input
                 autoFocus
                 value={query}
@@ -79,7 +93,9 @@ export function FormCombobox({
             </div>
             <div className="max-h-60 overflow-auto py-1">
               {filtered.length === 0 ? (
-                <p className="px-3 py-2 text-sm text-slate-500">{emptyText}</p>
+                <p className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">
+                  {emptyText}
+                </p>
               ) : (
                 filtered.map((o) => (
                   <button
@@ -90,11 +106,15 @@ export function FormCombobox({
                       setQuery('')
                       setOpen(false)
                     }}
-                    className="flex w-full items-center justify-between px-3 py-1.5 text-left text-sm hover:bg-slate-50"
+                    className={cn(
+                      'flex w-full items-center justify-between px-3 py-1.5 text-left text-sm transition',
+                      'text-slate-700 hover:bg-slate-50',
+                      'dark:text-slate-200 dark:hover:bg-slate-700',
+                    )}
                   >
                     <span>{o.label}</span>
                     {value === o.value && (
-                      <Check className="h-4 w-4 text-brand-500" />
+                      <Check className="h-4 w-4 text-brand-500 dark:text-brand-400" />
                     )}
                   </button>
                 ))
@@ -104,7 +124,9 @@ export function FormCombobox({
         )}
       </div>
       {errorMessage && (
-        <p className="mt-1 text-xs text-red-600">{errorMessage}</p>
+        <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+          {errorMessage}
+        </p>
       )}
     </div>
   )

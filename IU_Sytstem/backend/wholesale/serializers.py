@@ -1,15 +1,42 @@
 from rest_framework import serializers
 
-from .models import InterWholesaleTransfer
 from .models import (
-    Wholesale, WholesaleStockLevel,
-    WholesaleStockIn, WholesaleStockOut, WholesaleDamage,
+    Wholesale,
+    WholesaleStockLevel,
+    WholesaleStockIn,
+    WholesaleStockOut,
+    WholesaleDamage,
+    InterWholesaleTransfer,
+    WeeklySales,
+    WeeklySalesCashIn,
+    WeeklySalesExpense,
+    WeeklySalesDamage,
+    PendingCollection,
 )
 
-from .models import (
-    WeeklySales, WeeklySalesCashIn, WeeklySalesExpense, WeeklySalesDamage,
-)
 
+# ---------------------------------------------------------------------------
+# Scope validation helper
+# ---------------------------------------------------------------------------
+
+def _validate_outlet_scope(value, request):
+    """Raise ValidationError if a scoped user targets another outlet."""
+    if value is None:
+        return value
+    user = request.user
+    if user.is_superuser or not user.wholesale_id:
+        return value
+    target_id = getattr(value, 'id', value)
+    if str(target_id) != str(user.wholesale_id):
+        raise serializers.ValidationError(
+            'You can only work with your assigned outlet.'
+        )
+    return value
+
+
+# ---------------------------------------------------------------------------
+# Wholesale
+# ---------------------------------------------------------------------------
 
 class WholesaleSerializer(serializers.ModelSerializer):
     manager_name = serializers.SerializerMethodField()
@@ -26,6 +53,10 @@ class WholesaleSerializer(serializers.ModelSerializer):
         return obj.manager.get_full_name() or obj.manager.username
 
 
+# ---------------------------------------------------------------------------
+# Stock levels
+# ---------------------------------------------------------------------------
+
 class WholesaleStockLevelSerializer(serializers.ModelSerializer):
     product_sku = serializers.CharField(source='product.sku', read_only=True)
     product_name = serializers.CharField(source='product.name', read_only=True)
@@ -40,6 +71,10 @@ class WholesaleStockLevelSerializer(serializers.ModelSerializer):
         read_only_fields = ['quantity', 'average_cost', 'last_updated']
 
 
+# ---------------------------------------------------------------------------
+# Stock in
+# ---------------------------------------------------------------------------
+
 class WholesaleStockInSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
 
@@ -51,6 +86,13 @@ class WholesaleStockInSerializer(serializers.ModelSerializer):
                   'received_by', 'received_at']
         read_only_fields = ['total_value', 'received_by', 'received_at']
 
+    def validate_wholesale(self, value):
+        return _validate_outlet_scope(value, self.context['request'])
+
+
+# ---------------------------------------------------------------------------
+# Stock out
+# ---------------------------------------------------------------------------
 
 class WholesaleStockOutSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
@@ -58,10 +100,17 @@ class WholesaleStockOutSerializer(serializers.ModelSerializer):
     class Meta:
         model = WholesaleStockOut
         fields = ['id', 'wholesale', 'product', 'product_name',
-                  'quantity', 'unit_value', 'total_value',
+                  'weekly_sales', 'quantity', 'unit_value', 'total_value',
                   'notes', 'approved_by', 'issued_at']
         read_only_fields = ['total_value', 'approved_by', 'issued_at']
 
+    def validate_wholesale(self, value):
+        return _validate_outlet_scope(value, self.context['request'])
+
+
+# ---------------------------------------------------------------------------
+# Damages
+# ---------------------------------------------------------------------------
 
 class WholesaleDamageSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
@@ -73,16 +122,24 @@ class WholesaleDamageSerializer(serializers.ModelSerializer):
                   'image', 'notes', 'reported_by', 'reported_at']
         read_only_fields = ['total_loss_value', 'reported_by', 'reported_at']
 
+    def validate_wholesale(self, value):
+        return _validate_outlet_scope(value, self.context['request'])
+
     def validate_image(self, value):
         if value and value.size > 5 * 1024 * 1024:
             raise serializers.ValidationError('Image must be under 5 MB.')
         return value
 
 
+# ---------------------------------------------------------------------------
+# Inter-wholesale transfers
+# ---------------------------------------------------------------------------
+
 class InterWholesaleTransferSerializer(serializers.ModelSerializer):
     from_name = serializers.CharField(source='from_wholesale.name', read_only=True)
     to_name = serializers.CharField(source='to_wholesale.name', read_only=True)
     product_name = serializers.CharField(source='product.name', read_only=True)
+
     initiated_by_name = serializers.SerializerMethodField()
     approved_by_name = serializers.SerializerMethodField()
     received_by_name = serializers.SerializerMethodField()
@@ -126,6 +183,14 @@ class InterWholesaleTransferSerializer(serializers.ModelSerializer):
 
     def get_cancelled_by_name(self, obj):
         return self._user_name(obj.cancelled_by)
+
+    def validate_from_wholesale(self, value):
+        return _validate_outlet_scope(value, self.context['request'])
+
+
+# ---------------------------------------------------------------------------
+# Weekly sales — sub-records
+# ---------------------------------------------------------------------------
 
 class WeeklySalesCashInSerializer(serializers.ModelSerializer):
     received_by_name = serializers.SerializerMethodField()
@@ -180,25 +245,20 @@ class WeeklySalesDamageSerializer(serializers.ModelSerializer):
         return value
 
 
+# ---------------------------------------------------------------------------
+# Weekly sales — header
+# ---------------------------------------------------------------------------
+
 class WeeklySalesSerializer(serializers.ModelSerializer):
     seller_name = serializers.SerializerMethodField()
     received_by_name = serializers.SerializerMethodField()
     wholesale_name = serializers.CharField(source='wholesale.name', read_only=True)
-    total_cashed = serializers.DecimalField(
-        max_digits=14, decimal_places=2, read_only=True,
-    )
-    total_expenses = serializers.DecimalField(
-        max_digits=14, decimal_places=2, read_only=True,
-    )
-    total_damages_value = serializers.DecimalField(
-        max_digits=14, decimal_places=2, read_only=True,
-    )
-    total_stock_in_value = serializers.DecimalField(
-        max_digits=14, decimal_places=2, read_only=True,
-    )
-    net_position = serializers.DecimalField(
-        max_digits=14, decimal_places=2, read_only=True,
-    )
+
+    total_cashed = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
+    total_expenses = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
+    total_damages_value = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
+    total_stock_in_value = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
+    net_position = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
 
     class Meta:
         model = WeeklySales
@@ -230,6 +290,9 @@ class WeeklySalesSerializer(serializers.ModelSerializer):
     def get_received_by_name(self, obj):
         return self._user_name(obj.received_by)
 
+    def validate_wholesale(self, value):
+        return _validate_outlet_scope(value, self.context['request'])
+
     def validate(self, attrs):
         start = attrs.get('start_date') or getattr(self.instance, 'start_date', None)
         end = attrs.get('end_date') or getattr(self.instance, 'end_date', None)
@@ -238,3 +301,25 @@ class WeeklySalesSerializer(serializers.ModelSerializer):
                 {'end_date': 'End date must be on or after start date.'}
             )
         return attrs
+
+
+# ---------------------------------------------------------------------------
+# Pending collections (laybys)
+# ---------------------------------------------------------------------------
+
+class PendingCollectionSerializer(serializers.ModelSerializer):
+    wholesale_name = serializers.CharField(source='wholesale.name', read_only=True)
+
+    class Meta:
+        model = PendingCollection
+        fields = [
+            'id', 'wholesale', 'wholesale_name',
+            'customer_name', 'customer_phone', 'description',
+            'total_price', 'amount_paid', 'balance',
+            'collection_deadline', 'status',
+            'recorded_by', 'created_at',
+        ]
+        read_only_fields = ['balance', 'recorded_by', 'created_at']
+
+    def validate_wholesale(self, value):
+        return _validate_outlet_scope(value, self.context['request'])

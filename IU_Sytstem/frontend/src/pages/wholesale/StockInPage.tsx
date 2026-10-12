@@ -14,17 +14,15 @@ import { FormCombobox } from '@/components/forms/FormCombobox'
 import { CurrencyInput } from '@/components/shared/CurrencyInput'
 import { DataTable } from '@/components/shared/DataTable'
 import { FilterBar } from '@/components/shared/FilterBar'
+import { WriteOnly } from '@/components/guards/WriteOnly'
 import { Select } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 
-import { useOutlets, useStockIns, useCreateStockIn } from '@/hooks/queries/useWholesale'
+import { useStockIns, useCreateStockIn } from '@/hooks/queries/useWholesale'
+import { useScopedOutlets } from '@/hooks/useScopedOutlets'
 import { useProducts } from '@/hooks/queries/useInventory'
 import { formatK, formatDateTime } from '@/lib/format'
 import type { StockIn, StockInSource } from '@/types/wholesale'
-
-// ---------------------------------------------------------------------------
-// Form schema
-// ---------------------------------------------------------------------------
 
 const stockInSchema = z.object({
   wholesale: z.number().int().positive(),
@@ -45,16 +43,12 @@ const SOURCE_OPTIONS = [
   { value: 'return', label: 'Customer Return' },
 ]
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
-
 export function StockInPage() {
   const [wholesaleFilter, setWholesaleFilter] = useState('')
   const [search, setSearch] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  const { data: outlets = [] } = useOutlets()
+  const { outlets } = useScopedOutlets()
   const { data: products = [] } = useProducts()
 
   const { data: stockIns = [], isLoading } = useStockIns(
@@ -129,10 +123,12 @@ export function StockInPage() {
         <p className="text-sm text-slate-500">
           Record stock arriving at a wholesale outlet.
         </p>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4" />
-          New Stock In
-        </Button>
+        <WriteOnly>
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            New Stock In
+          </Button>
+        </WriteOnly>
       </div>
 
       <FilterBar
@@ -170,34 +166,32 @@ export function StockInPage() {
         emptyDescription="Click 'New Stock In' to record your first delivery."
       />
 
-      <StockInDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        outlets={outlets}
-        products={products}
-        onSubmit={async (data) => {
-          try {
-            await createStockIn.mutateAsync({
-              ...data,
-              unit_value: data.unit_value,
-            } as Partial<StockIn>)
-            toast.success('Stock recorded')
-            setDialogOpen(false)
-          } catch (err) {
-            const msg =
-              (err as { response?: { data?: unknown } })?.response?.data
-            toast.error(msg ? JSON.stringify(msg) : 'Failed to save')
-          }
-        }}
-        loading={createStockIn.isPending}
-      />
+      {dialogOpen && (
+        <StockInDialog
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          outlets={outlets}
+          products={products}
+          onSubmit={async (data) => {
+            try {
+              await createStockIn.mutateAsync({
+                ...data,
+                unit_value: data.unit_value,
+              } as Partial<StockIn>)
+              toast.success('Stock recorded')
+              setDialogOpen(false)
+            } catch (err) {
+              const msg =
+                (err as { response?: { data?: unknown } })?.response?.data
+              toast.error(msg ? JSON.stringify(msg) : 'Failed to save')
+            }
+          }}
+          loading={createStockIn.isPending}
+        />
+      )}
     </div>
   )
 }
-
-// ---------------------------------------------------------------------------
-// Dialog
-// ---------------------------------------------------------------------------
 
 function StockInDialog({
   open,

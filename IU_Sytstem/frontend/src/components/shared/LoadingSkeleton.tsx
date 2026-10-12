@@ -1,10 +1,23 @@
 import { cn } from '@/lib/utils'
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn('animate-pulse rounded bg-slate-200', className)} />
+  return (
+    <div
+      className={cn(
+        'animate-pulse rounded bg-slate-200 dark:bg-slate-700',
+        className,
+      )}
+    />
+  )
 }
 
-export function TableSkeleton({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {
+export function TableSkeleton({
+  rows = 5,
+  cols = 4,
+}: {
+  rows?: number
+  cols?: number
+}) {
   return (
     <div className="space-y-2 p-4">
       {Array.from({ length: rows }).map((_, r) => (
@@ -24,7 +37,7 @@ export function TableSkeleton({ rows = 5, cols = 4 }: { rows?: number; cols?: nu
 
 export function CardSkeleton() {
   return (
-    <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-5">
+    <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
       <Skeleton className="h-4 w-24" />
       <Skeleton className="h-8 w-40" />
     </div>

@@ -58,7 +58,12 @@ export function RegNumberInput({
       />
       {showValidation && local.length > 0 && (
         <p
-          className={`mt-1 text-xs ${isValid ? 'text-emerald-600' : 'text-red-600'}`}
+          className={cn(
+            'mt-1 text-xs',
+            isValid
+              ? 'text-emerald-600 dark:text-emerald-400'
+              : 'text-red-600 dark:text-red-400',
+          )}
         >
           {isValid ? 'Valid registration number' : 'Format: ABC 1234'}
         </p>

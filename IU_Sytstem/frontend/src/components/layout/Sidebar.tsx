@@ -24,49 +24,21 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-  {
-    label: 'Inventory',
-    to: '/inventory',
-    icon: Package,
-    roles: ['inventory_manager', 'inventory_clerk'],
-  },
-  {
-    label: 'Supply Chain',
-    to: '/supply-chain',
-    icon: Warehouse,
-    roles: ['supply_chain_officer'],
-  },
-  {
-    label: 'Transport',
-    to: '/transport',
-    icon: Truck,
-    roles: ['transport_manager', 'transport_clerk'],
-  },
-  {
-    label: 'Wholesale',
-    to: '/wholesale',
-    icon: Store,
-    roles: ['wholesale_manager', 'wholesale_clerk', 'cashier'],
-  },
-  {
-    label: 'Payroll',
-    to: '/payroll',
-    icon: Wallet,
-    roles: ['payroll_officer'],
-  },
-  {
-    label: 'Reporting',
-    to: '/reporting',
-    icon: BarChart3,
+  { label: 'Inventory', to: '/inventory', icon: Package,
+    roles: ['inventory_manager', 'inventory_clerk'] },
+  { label: 'Production', to: '/supply-chain', icon: Warehouse,
+    roles: ['supply_chain_officer'] },
+  { label: 'Transport', to: '/transport', icon: Truck,
+    roles: ['transport_manager', 'transport_clerk'] },
+  { label: 'Wholesale', to: '/wholesale', icon: Store,
+    roles: ['wholesale_manager', 'wholesale_clerk', 'cashier'] },
+  { label: 'Payroll', to: '/payroll', icon: Wallet,
+    roles: ['payroll_officer'] },
+  { label: 'Reporting', to: '/reporting', icon: BarChart3,
     roles: [
-      'reporting_analyst',
-      'inventory_manager',
-      'transport_manager',
-      'supply_chain_officer',
-      'wholesale_manager',
-      'payroll_officer',
-    ],
-  },
+      'reporting_analyst', 'inventory_manager', 'transport_manager',
+      'supply_chain_officer', 'wholesale_manager', 'payroll_officer', 'auditor',
+    ] },
   { label: 'Admin', to: '/admin', icon: Users },
   { label: 'Playground', to: '/playground', icon: FlaskConical },
 ]
@@ -81,14 +53,14 @@ export function Sidebar() {
   })
 
   return (
-    <aside className="hidden w-60 flex-col border-r border-slate-200 bg-white md:flex">
-      {/* Brand */}
-      <div className="flex h-16 items-center gap-2 border-b border-slate-200 px-5">
-        <ClipboardList className="h-6 w-6 text-brand-500" />
-        <span className="font-semibold text-slate-800">IU System</span>
+    <aside className="hidden w-60 flex-col border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 md:flex">
+      <div className="flex h-16 items-center gap-2 border-b border-slate-200 px-5 dark:border-slate-700">
+        <ClipboardList className="h-6 w-6 text-brand-500 dark:text-brand-400" />
+        <span className="font-semibold text-slate-800 dark:text-slate-100">
+          IU System
+        </span>
       </div>
 
-      {/* Internal navigation */}
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         {visibleItems.map((item) => (
           <NavLink
@@ -98,8 +70,8 @@ export function Sidebar() {
               cn(
                 'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition',
                 isActive
-                  ? 'bg-brand-50 text-brand-700'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                  ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100',
               )
             }
           >
@@ -109,22 +81,21 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* External links — separated from internal nav */}
-      <div className="border-t border-slate-200 p-3">
-        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <div className="border-t border-slate-200 p-3 dark:border-slate-700">
+        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
           External
         </p>
         <a
           href="/book"
           target="_blank"
           rel="noreferrer"
-          className="flex items-center justify-between gap-3 rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+          className="flex items-center justify-between gap-3 rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
         >
           <span className="flex items-center gap-3">
             <ExternalLink className="h-4 w-4" />
             Public Portal
           </span>
-          <span className="text-xs text-slate-400">↗</span>
+          <span className="text-xs text-slate-400 dark:text-slate-500">↗</span>
         </a>
       </div>
     </aside>

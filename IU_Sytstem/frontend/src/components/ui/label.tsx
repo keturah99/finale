@@ -8,7 +8,10 @@ export function Label({
 }: React.LabelHTMLAttributes<HTMLLabelElement> & { required?: boolean }) {
   return (
     <label
-      className={cn('mb-1 block text-sm font-medium text-slate-700', className)}
+      className={cn(
+        'mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300',
+        className,
+      )}
       {...props}
     >
       {children}
