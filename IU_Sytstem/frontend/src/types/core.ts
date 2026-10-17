@@ -25,11 +25,13 @@ export interface Role {
   id: number
   name: string
   description: string
+  department_codes: string[]
 }
 
 export interface RoleFormData {
   name: string
   description?: string
+  department_ids?: number[]
 }
 
 // ---------------------------------------------------------------------------
@@ -56,6 +58,7 @@ export interface User {
   wholesale: WholesaleScope | null
   roles: Role[]
   phone?: string
+  nrc?: string | null
   is_active: boolean
   is_staff: boolean
   is_superuser: boolean
@@ -69,6 +72,7 @@ export interface UserFormData {
   first_name: string
   last_name: string
   phone?: string
+  nrc?: string
   department_id?: number | null
   wholesale_id?: number | null
   role_ids?: number[]

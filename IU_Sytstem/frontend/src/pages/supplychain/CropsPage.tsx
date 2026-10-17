@@ -11,7 +11,7 @@ export function CropsPage() {
     () => [
       { accessorKey: 'code', header: 'Code', size: 120,
         Cell: ({ row }) => (
-          <span className="font-mono text-sm font-semibold text-slate-800">
+          <span className="font-mono text-sm font-semibold text-slate-800 dark:text-slate-100">
             {row.original.name.toUpperCase()}
           </span>
         ),
@@ -24,7 +24,7 @@ export function CropsPage() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-500 dark:text-slate-400">
         Fixed list of crops the company buys. Managed via backend seed — not editable from here.
       </p>
 

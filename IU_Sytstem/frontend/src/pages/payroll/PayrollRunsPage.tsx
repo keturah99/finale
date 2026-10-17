@@ -48,7 +48,7 @@ export function PayrollRunsPage() {
     () => [
       { accessorKey: 'period_label', header: 'Period', size: 160,
         Cell: ({ cell }) => (
-          <span className="font-semibold text-slate-800">{cell.getValue<string>()}</span>
+          <span className="font-semibold text-slate-800 dark:text-slate-100">{cell.getValue<string>()}</span>
         ) },
       { id: 'dates', header: 'Range', size: 200,
         Cell: ({ row }) => `${row.original.period_start} → ${row.original.period_end}` },
@@ -75,7 +75,7 @@ export function PayrollRunsPage() {
               </button>
             </WriteOnly>
           ) : (
-            <span className="text-xs text-slate-400">Completed</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500">Completed</span>
           ) },
     ],
     [],
@@ -107,7 +107,7 @@ export function PayrollRunsPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Create a run per pay period, then process it to generate records.
         </p>
         <WriteOnly>

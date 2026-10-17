@@ -62,6 +62,18 @@ import { ReportingLayout } from '@/pages/reporting/ReportingLayout'
 import { ReportCataloguePage } from '@/pages/reporting/ReportCataloguePage'
 import { ReportLogsPage } from '@/pages/reporting/ReportLogsPage'
 
+import {
+  FinanceLayout,
+  FinanceDashboardPage,
+  FinanceQueuePage,
+  FinanceAuditLogPage,
+} from '@/pages/finance'
+import {
+  CashierLayout,
+  CashierDashboardPage,
+  MySubmissionsPage,
+} from '@/pages/cashier'
+
 import { AdminLayout } from '@/pages/admin/AdminLayout'
 import { UsersPage } from '@/pages/admin/UsersPage'
 import { DepartmentsPage } from '@/pages/admin/DepartmentsPage'
@@ -154,6 +166,21 @@ export default function App() {
                   <Route path="weekly-sales" element={<WeeklySalesPage />} />
                   <Route path="weekly-sales/:id" element={<WeeklySalesDetailPage />} />
                   <Route path="laybys" element={<LaybysPage />} />
+                </Route>
+
+                {/* ---------- Cashier ---------- */}
+                <Route path="cashier" element={<CashierLayout />}>
+                  <Route index element={<Navigate to="dashboard" replace />} />
+                  <Route path="dashboard" element={<CashierDashboardPage />} />
+                  <Route path="my-submissions" element={<MySubmissionsPage />} />
+                </Route>
+                              
+                {/* ---------- Finance ---------- */}
+                <Route path="finance" element={<FinanceLayout />}>
+                  <Route index element={<Navigate to="dashboard" replace />} />
+                  <Route path="dashboard" element={<FinanceDashboardPage />} />
+                  <Route path="queue" element={<FinanceQueuePage />} />
+                  <Route path="audit-log" element={<FinanceAuditLogPage />} />
                 </Route>
 
                 <Route path="payroll" element={<PayrollLayout />}>

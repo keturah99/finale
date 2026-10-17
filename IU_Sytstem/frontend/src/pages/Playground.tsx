@@ -70,7 +70,7 @@ export function Playground() {
         Cell: ({ row }) => (
           <DropdownMenu
             trigger={
-              <span className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+              <span className="rounded p-1 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700">
                 •••
               </span>
             }
@@ -160,14 +160,14 @@ export function Playground() {
           <RegNumberInput label="Registration" value={reg} onChange={setReg} />
         </div>
         <div className="mt-4 max-w-md">
-          <label className="mb-1 block text-sm font-medium text-slate-700">
+          <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
             Date range
           </label>
           <DateRangePicker from={dates.from} to={dates.to} onChange={setDates} />
         </div>
         <div className="mt-4">
           <SearchInput value={search} onChange={setSearch} />
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Debounced value: {search || '—'}
           </p>
         </div>
@@ -190,7 +190,7 @@ export function Playground() {
       {/* Empty state */}
       <section>
         <h2 className="mb-3 text-lg font-semibold">EmptyState</h2>
-        <div className="rounded-lg border border-slate-200 bg-white">
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
           <EmptyState
             icon={Package}
             title="No vehicles yet"

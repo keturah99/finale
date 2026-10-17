@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+Date: Fri, 16 Oct 2026 00:01:47 GMT
+Server: WSGIServer/0.2 CPython/3.14.8
+Content-Type: text/csv
+Content-Disposition: attachment; filename="bank_export_September_2026.csv"
+Vary: Accept, origin
+Allow: GET, HEAD, OPTIONS
+X-Frame-Options: DENY
+Content-Length: 137
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Cross-Origin-Opener-Policy: same-origin
+
+Employee ID,Employee Name,NRC Number,Account Number,Bank,Branch,Net Amount
+2,Kristene Museisei,,,,,8930.50
+3,Martin Phiri,,,,,5970.00

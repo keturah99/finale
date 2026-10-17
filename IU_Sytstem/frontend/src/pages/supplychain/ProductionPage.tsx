@@ -103,7 +103,7 @@ export function ProductionPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Track raw material intake and finished product output.
         </p>
         <WriteOnly>

@@ -7,6 +7,7 @@ import type {
   BankExport,
 } from '@/types/payroll'
 
+
 // ---------------------------------------------------------------------------
 // Pagination helper
 // ---------------------------------------------------------------------------
@@ -25,6 +26,7 @@ async function fetchList<T>(
   const { data } = await api.get<Paginated<T> | T[]>(url, { params })
   return Array.isArray(data) ? data : data.results
 }
+
 
 // ---------------------------------------------------------------------------
 // Query keys
@@ -48,6 +50,7 @@ export const payrollKeys = {
 
   bankExports: () => [...payrollKeys.all, 'bank-exports'] as const,
 }
+
 
 // ---------------------------------------------------------------------------
 // Salary structures
@@ -114,6 +117,7 @@ export function useDeleteSalary() {
   })
 }
 
+
 // ---------------------------------------------------------------------------
 // Payroll runs
 // ---------------------------------------------------------------------------
@@ -177,8 +181,9 @@ export function useRunRecords(runId: number | null) {
   })
 }
 
+
 // ---------------------------------------------------------------------------
-// Bank export (POST — the backend action requires it)
+// Bank export — generate from a run (POST)
 // ---------------------------------------------------------------------------
 
 export function useExportBank() {
@@ -203,6 +208,30 @@ export function useExportBank() {
   })
 }
 
+
+// ---------------------------------------------------------------------------
+// Bank export — download a historical export (GET)
+// ---------------------------------------------------------------------------
+
+export function useDownloadBankExport() {
+  return useMutation({
+    mutationFn: async ({
+      id,
+      fileName,
+    }: {
+      id: number
+      fileName: string
+    }) => {
+      await downloadFile(
+        `/api/payroll/bank-exports/${id}/download/`,
+        fileName,
+        'get',
+      )
+    },
+  })
+}
+
+
 // ---------------------------------------------------------------------------
 // Payroll records (officer view)
 // ---------------------------------------------------------------------------
@@ -214,8 +243,9 @@ export function usePayrollRecords(filters?: Record<string, unknown>) {
   })
 }
 
+
 // ---------------------------------------------------------------------------
-// My payslips (any authenticated user)
+// My payslips
 // ---------------------------------------------------------------------------
 
 export function useMyPayslips() {
@@ -243,6 +273,7 @@ export function useDownloadPayslip() {
     },
   })
 }
+
 
 // ---------------------------------------------------------------------------
 // Bank exports history

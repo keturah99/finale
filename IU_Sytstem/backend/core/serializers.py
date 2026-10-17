@@ -1,9 +1,13 @@
+import re
+
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
 from .models import Department, Role
 
 User = get_user_model()
+
+NRC_RE = re.compile(r'^\d{6}/\d{2}/\d$')
 
 
 # ---------------------------------------------------------------------------
@@ -21,10 +25,14 @@ class DepartmentSerializer(serializers.ModelSerializer):
 # ---------------------------------------------------------------------------
 
 class RoleSerializer(serializers.ModelSerializer):
+    department_codes = serializers.SerializerMethodField()
+
     class Meta:
         model = Role
-        fields = ['id', 'name', 'description']
+        fields = ['id', 'name', 'description', 'department_codes']
 
+    def get_department_codes(self, obj):
+        return list(obj.departments.values_list('code', flat=True))
 
 # ---------------------------------------------------------------------------
 # Wholesale (minimal, to avoid circular import)
@@ -85,6 +93,7 @@ class UserSerializer(serializers.ModelSerializer):
             'roles',
             'role_ids',
             'phone',
+            'nrc',
             'password',
             'is_active',
             'is_staff',
@@ -101,7 +110,6 @@ class UserSerializer(serializers.ModelSerializer):
         """Look up a Wholesale by ID; returns None for null/empty."""
         if wholesale_id is None or wholesale_id == '':
             return None
-        # Lazy import to avoid circular dependency
         from wholesale.models import Wholesale
         try:
             return Wholesale.objects.get(pk=wholesale_id)
@@ -110,8 +118,32 @@ class UserSerializer(serializers.ModelSerializer):
                 'wholesale_id': 'Wholesale outlet not found.'
             })
 
+    # ---------------- Validation ----------------
+
+    def validate_nrc(self, value):
+        # Empty values become None (multiple users with no NRC is allowed)
+        if value is None or value == '':
+            return None
+
+        # Format check
+        if not NRC_RE.match(value):
+            raise serializers.ValidationError(
+                'NRC must be in the format 123456/78/9.'
+            )
+
+        # Uniqueness check — exclude the current instance on update
+        qs = User.objects.filter(nrc=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError(
+                'A user with this NRC already exists.'
+            )
+        return value
+
+    # ---------------- Write ----------------
+
     def create(self, validated_data):
-        # Extract write-only fields
         roles = validated_data.pop('roles', [])
         password = validated_data.pop('password', None)
         wholesale_id = validated_data.pop('wholesale_id', None)

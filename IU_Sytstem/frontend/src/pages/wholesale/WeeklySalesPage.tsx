@@ -57,7 +57,7 @@ export function WeeklySalesPage() {
         header: 'Cycle',
         size: 140,
         Cell: ({ cell }) => (
-          <span className="font-semibold text-slate-800">
+          <span className="font-semibold text-slate-800 dark:text-slate-100">
             {cell.getValue<string>()}
           </span>
         ),
@@ -120,7 +120,7 @@ export function WeeklySalesPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Track weekly sales cycles. Cash, expenses, and damages are recorded
           per cycle; week numbers auto-increment per outlet.
         </p>

@@ -267,9 +267,11 @@ class TransportBookingViewSet(viewsets.ModelViewSet):
             pairing_source = 'manual'
 
             # Try to auto-pair the primary driver
+                        # Try to auto-pair the primary driver
             if vehicle.primary_driver:
                 ok, reason = is_driver_eligible(
-                    vehicle.primary_driver, vehicle, booking
+                    vehicle.primary_driver, vehicle, booking,
+                    skip_vehicle_availability=True,
                 )
                 if ok:
                     # Release any previous driver
@@ -348,9 +350,11 @@ class TransportBookingViewSet(viewsets.ModelViewSet):
                 )
 
             # --- Case 1: vehicle already assigned ---
+                        # --- Case 1: vehicle already assigned ---
             if booking.assigned_vehicle:
                 ok, reason = is_driver_eligible(
-                    driver, booking.assigned_vehicle, booking
+                    driver, booking.assigned_vehicle, booking,
+                    skip_vehicle_availability=True,
                 )
                 if not ok:
                     return Response({'error': reason}, status=400)

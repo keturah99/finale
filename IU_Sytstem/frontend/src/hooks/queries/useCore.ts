@@ -9,9 +9,6 @@ import type {
   RoleFormData,
 } from '@/types/core'
 
-// ---------------------------------------------------------------------------
-// Pagination helper
-// ---------------------------------------------------------------------------
 
 interface Paginated<T> {
   count: number
@@ -28,9 +25,6 @@ async function fetchList<T>(
   return Array.isArray(data) ? data : data.results
 }
 
-// ---------------------------------------------------------------------------
-// Query keys
-// ---------------------------------------------------------------------------
 
 export const coreKeys = {
   all: ['core'] as const,
@@ -45,6 +39,7 @@ export const coreKeys = {
   roles: () => [...coreKeys.all, 'roles'] as const,
   role: (id: number) => [...coreKeys.all, 'roles', id] as const,
 }
+
 
 // ---------------------------------------------------------------------------
 // Users
@@ -107,6 +102,7 @@ export function useDeleteUser() {
   })
 }
 
+
 // ---------------------------------------------------------------------------
 // Departments
 // ---------------------------------------------------------------------------
@@ -162,6 +158,7 @@ export function useDeleteDepartment() {
     },
   })
 }
+
 
 // ---------------------------------------------------------------------------
 // Roles

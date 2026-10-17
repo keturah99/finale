@@ -50,7 +50,7 @@ export function AlertsPage() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-500 dark:text-slate-400">
         Unresolved low-stock and out-of-stock alerts across all products.
       </p>
 

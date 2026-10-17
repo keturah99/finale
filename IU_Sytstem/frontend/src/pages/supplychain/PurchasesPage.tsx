@@ -109,9 +109,9 @@ export function PurchasesPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Total of filtered:{' '}
-          <span className="font-semibold text-slate-800">{formatK(totalValue)}</span>
+          <span className="font-semibold text-slate-800 dark:text-slate-100">{formatK(totalValue)}</span>
         </p>
         <WriteOnly>
           <Button onClick={() => setDialogOpen(true)}>
@@ -209,7 +209,7 @@ function PurchaseDialog({
             {...register('quantity_kg', { setValueAs: (v) => String(v).replace(/[^\d.]/g, '') })} />
           <Controller name="price_per_kg" control={control} render={({ field }) => (
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Price per kg <span className="text-red-500">*</span>
               </label>
               <CurrencyInput value={field.value} onChange={field.onChange}
@@ -219,14 +219,14 @@ function PurchaseDialog({
           )} />
         </div>
 
-        <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
-          <span className="text-slate-500">Total amount: </span>
-          <span className="font-semibold text-slate-800">{formatK(total)}</span>
+        <div className="rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-3 py-2 text-sm">
+          <span className="text-slate-500 dark:text-slate-400">Total amount: </span>
+          <span className="font-semibold text-slate-800 dark:text-slate-100">{formatK(total)}</span>
         </div>
 
         <Controller name="amount_paid" control={control} render={({ field }) => (
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Amount paid (optional)
             </label>
             <CurrencyInput value={field.value ?? ''} onChange={field.onChange} />

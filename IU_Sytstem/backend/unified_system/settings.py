@@ -32,7 +32,9 @@ INSTALLED_APPS = [
     'supplychain',
     'inventory',
     'reporting',
+    'finance',
     'wholesale',
+    'cashier'
 ]
 
 MIDDLEWARE = [

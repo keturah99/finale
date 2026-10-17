@@ -222,7 +222,7 @@ export function Dashboard() {
               className="flex cursor-pointer items-center justify-between px-4 py-3 transition hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-200">
+                <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100 dark:text-slate-200">
                   #{b.id} — {b.customer_name}
                 </p>
                 <p className="truncate text-xs text-slate-500 dark:text-slate-400">
@@ -250,7 +250,7 @@ export function Dashboard() {
               className="flex cursor-pointer items-center justify-between px-4 py-3 transition hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-200">
+                <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100 dark:text-slate-200">
                   {t.from_name} → {t.to_name}
                 </p>
                 <p className="truncate text-xs text-slate-500 dark:text-slate-400">
@@ -396,7 +396,7 @@ function ActivityPanel({
   const navigate = useNavigate()
   return (
     <div className="rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-      <div className="flex items-center justify-between border-b border-slate-100 p-4 dark:border-slate-700">
+      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 p-4 dark:border-slate-700">
         <div className="flex items-center gap-2">
           <Icon className="h-4 w-4 text-slate-400 dark:text-slate-500" />
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">

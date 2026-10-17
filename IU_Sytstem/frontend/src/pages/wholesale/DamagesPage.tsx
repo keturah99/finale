@@ -101,13 +101,13 @@ export function DamagesPage() {
         enableSorting: false,
         Cell: ({ cell }) => {
           const url = cell.getValue<string | null>()
-          if (!url) return <span className="text-slate-400">—</span>
+          if (!url) return <span className="text-slate-400 dark:text-slate-500">—</span>
           return (
             <a href={url} target="_blank" rel="noreferrer">
               <img
                 src={url}
                 alt="damage"
-                className="h-8 w-8 rounded border border-slate-200 object-cover"
+                className="h-8 w-8 rounded border border-slate-200 dark:border-slate-700 object-cover"
               />
             </a>
           )
@@ -120,7 +120,7 @@ export function DamagesPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Record damaged or lost stock. Deducts from the outlet automatically.
         </p>
         <WriteOnly>
@@ -325,7 +325,7 @@ function DamageDialog({
             control={control}
             render={({ field }) => (
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Selling Price <span className="text-red-500">*</span>
                 </label>
                 <CurrencyInput
@@ -351,7 +351,7 @@ function DamageDialog({
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
+          <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
             Photo evidence (optional)
           </label>
           {imagePreview ? (
@@ -359,7 +359,7 @@ function DamageDialog({
               <img
                 src={imagePreview}
                 alt="preview"
-                className="h-32 w-32 rounded-md border border-slate-200 object-cover"
+                className="h-32 w-32 rounded-md border border-slate-200 dark:border-slate-700 object-cover"
               />
               <button
                 type="button"
@@ -373,7 +373,7 @@ function DamageDialog({
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="flex h-24 w-full flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed border-slate-300 text-slate-500 transition hover:border-brand-400 hover:bg-slate-50"
+              className="flex h-24 w-full flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed border-slate-300 text-slate-500 dark:text-slate-400 transition hover:border-brand-400 hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               <ImageIcon className="h-6 w-6" />
               <span className="text-xs">Click to upload image (max 5 MB)</span>

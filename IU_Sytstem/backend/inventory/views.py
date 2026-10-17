@@ -13,6 +13,8 @@ from .serializers import (
     ProductSerializer, StockMovementSerializer,
     StockAlertSerializer, StockLevelSerializer,
 )
+from rest_framework.permissions import IsAuthenticated
+from .services import record_stock_movement
 
 READ_ROLES = [INVENTORY_MANAGER, INVENTORY_CLERK, AUDITOR]
 WRITE_ROLES_MGR = [INVENTORY_MANAGER]
@@ -39,40 +41,21 @@ class ProductViewSet(ScopedViewSetMixin, viewsets.ModelViewSet):
         StockLevel.objects.create(product=product, quantity_on_hand=0)
 
 
-class StockMovementViewSet(ScopedViewSetMixin, viewsets.ModelViewSet):
+class StockMovementViewSet(viewsets.ModelViewSet):
     queryset = StockMovement.objects.all()
     serializer_class = StockMovementSerializer
-    permission_classes = [RolePermission]
-    read_roles = READ_ROLES
-    write_roles = WRITE_ROLES_CLERK
-    department_field = 'product__department'
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        return self.scope_queryset(qs, self.request)
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        with transaction.atomic():
-            movement = serializer.save(performed_by=self.request.user)
-            level, _ = StockLevel.objects.get_or_create(product=movement.product)
-            if movement.movement_type == 'in':
-                level.quantity_on_hand = F('quantity_on_hand') + movement.quantity
-            elif movement.movement_type == 'out':
-                level.quantity_on_hand = F('quantity_on_hand') - movement.quantity
-            else:
-                level.quantity_on_hand = movement.quantity
-            level.save()
-            level.refresh_from_db()
-
-            if level.quantity_on_hand <= movement.product.reorder_level:
-                alert_type = 'out' if level.quantity_on_hand <= 0 else 'low'
-                StockAlert.objects.create(
-                    product=movement.product,
-                    alert_type=alert_type,
-                    message=f"{movement.product.name} is at {level.quantity_on_hand}"
-                            f" (reorder at {movement.product.reorder_level})",
-                )
-
+        data = serializer.validated_data
+        record_stock_movement(
+            product=data['product'],
+            movement_type=data['movement_type'],
+            quantity=data['quantity'],
+            reference=data.get('reference', ''),
+            notes=data.get('notes', ''),
+            user=self.request.user
+        )
 
 class StockAlertViewSet(ScopedViewSetMixin, viewsets.ModelViewSet):
     queryset = StockAlert.objects.filter(is_resolved=False)

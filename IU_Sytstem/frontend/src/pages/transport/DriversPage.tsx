@@ -90,10 +90,10 @@ export function DriversPage() {
         size: 180,
         Cell: ({ row }) => (
           <div>
-            <p className="font-medium text-slate-800">
+            <p className="font-medium text-slate-800 dark:text-slate-100">
               {row.original.full_name}
             </p>
-            <p className="text-xs text-slate-500">@{row.original.username}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">@{row.original.username}</p>
           </div>
         ),
       },
@@ -126,13 +126,13 @@ export function DriversPage() {
         enableSorting: false,
         Cell: ({ cell }) => {
           const codes = cell.getValue<string[]>() ?? []
-          if (codes.length === 0) return <span className="text-slate-400">—</span>
+          if (codes.length === 0) return <span className="text-slate-400 dark:text-slate-500">—</span>
           return (
             <div className="flex flex-wrap gap-1">
               {codes.map((c) => (
                 <span
                   key={c}
-                  className="inline-flex items-center rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-xs font-mono font-medium text-slate-700"
+                  className="inline-flex items-center rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-1.5 py-0.5 text-xs font-mono font-medium text-slate-700 dark:text-slate-300"
                 >
                   {c}
                 </span>
@@ -152,7 +152,7 @@ export function DriversPage() {
               Yes
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+            <span className="inline-flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500">
               <ShieldOff className="h-3.5 w-3.5" />
               No
             </span>
@@ -176,7 +176,7 @@ export function DriversPage() {
         Cell: ({ row }) => (
           <DropdownMenu
             trigger={
-              <span className="cursor-pointer rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+              <span className="cursor-pointer rounded p-1 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700">
                 •••
               </span>
             }
@@ -239,7 +239,7 @@ export function DriversPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Drivers with license classes and PSV endorsements. Used for dispatch pairing.
         </p>
         <WriteOnly>
@@ -414,7 +414,7 @@ function DriverDialog({
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">
+          <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
             License Classes <span className="text-red-500">*</span>
           </label>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -428,8 +428,8 @@ function DriverDialog({
                   className={cn(
                     'flex items-center gap-2 rounded-md border px-3 py-2 text-left transition',
                     checked
-                      ? 'border-brand-500 bg-brand-50 text-brand-700'
-                      : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400',
+                      ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/20 text-brand-700'
+                      : 'border-slate-300 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-slate-400',
                   )}
                 >
                   <span
@@ -461,7 +461,7 @@ function DriverDialog({
           )}
         </div>
 
-        <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+        <div className="rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3">
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -470,10 +470,10 @@ function DriverDialog({
               className="mt-0.5 h-4 w-4 rounded border-slate-300"
             />
             <div>
-              <p className="text-sm font-medium text-slate-800">
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
                 PSV Endorsement
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Required for public-category vehicles (passenger service).
               </p>
             </div>

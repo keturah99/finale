@@ -94,7 +94,7 @@ export function SalariesPage() {
         enableColumnFilter: false,
         Cell: ({ row }) => (
           <DropdownMenu trigger={
-            <span className="cursor-pointer rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700">•••</span>
+            <span className="cursor-pointer rounded p-1 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700">•••</span>
           }>
             <DropdownItem onClick={() => { setEditing(row.original); setDialogOpen(true) }}>
               <span className="flex items-center gap-2"><Pencil className="h-3.5 w-3.5" /> Edit</span>
@@ -141,7 +141,7 @@ export function SalariesPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Employee compensation structure. Every active employee should have one.
         </p>
         <WriteOnly>
@@ -236,7 +236,7 @@ function SalaryDialog({
 
         <Controller name="basic_salary" control={control} render={({ field }) => (
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Basic Salary <span className="text-red-500">*</span>
             </label>
             <CurrencyInput value={field.value} onChange={field.onChange}
@@ -248,19 +248,19 @@ function SalaryDialog({
         <div className="grid grid-cols-3 gap-3">
           <Controller name="housing_allowance" control={control} render={({ field }) => (
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Housing</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Housing</label>
               <CurrencyInput value={field.value ?? ''} onChange={field.onChange} />
             </div>
           )} />
           <Controller name="transport_allowance" control={control} render={({ field }) => (
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Transport</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Transport</label>
               <CurrencyInput value={field.value ?? ''} onChange={field.onChange} />
             </div>
           )} />
           <Controller name="other_allowances" control={control} render={({ field }) => (
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Other</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Other</label>
               <CurrencyInput value={field.value ?? ''} onChange={field.onChange} />
             </div>
           )} />
@@ -273,7 +273,7 @@ function SalaryDialog({
             error={errors.effective_to} {...register('effective_to')} />
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
           <input type="checkbox" className="h-4 w-4 rounded border-slate-300" {...register('is_active')} />
           Active
         </label>

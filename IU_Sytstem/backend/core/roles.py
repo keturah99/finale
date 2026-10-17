@@ -28,6 +28,10 @@ WHOLESALE_MANAGER = 'wholesale_manager'
 WHOLESALE_CLERK = 'wholesale_clerk'
 CASHIER = 'cashier'
 
+# Finance
+FINANCE_OFFICER = 'finance_officer'
+FINANCE_MANAGER = 'finance_manager'
+
 
 ROLE_DEFINITIONS = {
     # Transport
@@ -54,4 +58,8 @@ ROLE_DEFINITIONS = {
     WHOLESALE_MANAGER: 'Full control over wholesale stock and weekly sales',
     WHOLESALE_CLERK: 'Record stock-in, damages, and receive transfers',
     CASHIER: 'Record cash-ins on open weekly sales periods',
+
+        # Finance
+    FINANCE_OFFICER: 'Review cash-ins, expenses, and damages; approve, reject, or query',
+    FINANCE_MANAGER: 'Full finance authority including reopen and bulk approve',
 }

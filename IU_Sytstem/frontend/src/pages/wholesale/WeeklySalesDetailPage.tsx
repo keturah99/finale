@@ -105,7 +105,7 @@ export function WeeklySalesDetailPage() {
       <div>
         <button
           onClick={() => navigate('/wholesale/weekly-sales')}
-          className="mb-2 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
+          className="mb-2 inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to cycles
@@ -162,7 +162,7 @@ export function WeeklySalesDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-slate-200">
+      <div className="border-b border-slate-200 dark:border-slate-700">
         {(['cash-ins', 'expenses', 'damages'] as Tab[]).map((t) => (
           <button
             key={t}
@@ -171,7 +171,7 @@ export function WeeklySalesDetailPage() {
               'border-b-2 px-4 py-2 text-sm font-medium transition',
               tab === t
                 ? 'border-brand-500 text-brand-700'
-                : 'border-transparent text-slate-600 hover:text-slate-900',
+                : 'border-transparent text-slate-600 dark:text-slate-300 hover:text-slate-900',
             )}
           >
             {t === 'cash-ins' && 'Cash-Ins'}
@@ -222,17 +222,17 @@ function SummaryCard({
   emphasized?: boolean
 }) {
   const toneClass = {
-    default: 'text-slate-800',
+    default: 'text-slate-800 dark:text-slate-100',
     positive: 'text-emerald-700',
     negative: 'text-red-700',
     warning: 'text-amber-700',
   }[tone]
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5">
+    <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
       <div className="flex items-center gap-2">
-        <Icon className="h-4 w-4 text-slate-400" />
-        <p className="text-xs uppercase tracking-wide text-slate-500">
+        <Icon className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+        <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
           {label}
         </p>
       </div>
@@ -351,7 +351,7 @@ function CashInsTab({ cycleId, isOpen }: { cycleId: number; isOpen: boolean }) {
             control={form.control}
             render={({ field }) => (
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Amount <span className="text-red-500">*</span>
                 </label>
                 <CurrencyInput
@@ -495,7 +495,7 @@ function ExpensesTab({ cycleId, isOpen }: { cycleId: number; isOpen: boolean }) 
             control={form.control}
             render={({ field }) => (
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Amount <span className="text-red-500">*</span>
                 </label>
                 <CurrencyInput
@@ -682,7 +682,7 @@ function DamagesTab({ cycleId, isOpen }: { cycleId: number; isOpen: boolean }) {
               control={form.control}
               render={({ field }) => (
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                     Selling Price <span className="text-red-500">*</span>
                   </label>
                   <CurrencyInput

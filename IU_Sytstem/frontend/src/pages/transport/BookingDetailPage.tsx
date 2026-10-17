@@ -117,7 +117,7 @@ export function BookingDetailPage() {
       <div>
         <button
           onClick={() => navigate('/transport/bookings')}
-          className="mb-2 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
+          className="mb-2 inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to bookings
@@ -408,10 +408,10 @@ function InfoCard({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5">
+    <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
       <div className="mb-4 flex items-center gap-2">
-        <Icon className="h-4 w-4 text-slate-400" />
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <Icon className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           {title}
         </h2>
       </div>
@@ -431,12 +431,12 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-start justify-between gap-4">
-      <dt className="shrink-0 text-xs uppercase tracking-wide text-slate-500">
+      <dt className="shrink-0 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
         {label}
       </dt>
       <dd
         className={cn(
-          'text-right text-sm text-slate-800',
+          'text-right text-sm text-slate-800 dark:text-slate-100',
           bold && 'font-semibold',
         )}
       >
@@ -471,20 +471,20 @@ function AssignmentCard({
         'rounded-lg border p-4',
         assigned
           ? 'border-emerald-200 bg-emerald-50'
-          : 'border-slate-200 bg-white',
+          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900',
       )}
     >
       <div className="mb-2 flex items-center gap-2">
         <Icon
           className={cn(
             'h-4 w-4',
-            assigned ? 'text-emerald-600' : 'text-slate-400',
+            assigned ? 'text-emerald-600' : 'text-slate-400 dark:text-slate-500',
           )}
         />
         <p
           className={cn(
             'text-xs font-semibold uppercase tracking-wide',
-            assigned ? 'text-emerald-700' : 'text-slate-500',
+            assigned ? 'text-emerald-700' : 'text-slate-500 dark:text-slate-400',
           )}
         >
           {title}
@@ -493,15 +493,15 @@ function AssignmentCard({
 
       {assigned && primaryText ? (
         <div>
-          <p className="font-mono text-sm font-semibold text-slate-800">
+          <p className="font-mono text-sm font-semibold text-slate-800 dark:text-slate-100">
             {primaryText}
           </p>
           {secondaryText && (
-            <p className="mt-0.5 text-xs text-slate-500">{secondaryText}</p>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{secondaryText}</p>
           )}
         </div>
       ) : (
-        <p className="text-sm text-slate-400">Not assigned</p>
+        <p className="text-sm text-slate-400 dark:text-slate-500">Not assigned</p>
       )}
 
       {onAssign && (
@@ -576,14 +576,14 @@ function Timeline({ booking }: { booking: import('@/types/transport').TransportB
                 'mt-0.5 flex h-8 w-8 items-center justify-center rounded-full',
                 step.done
                   ? 'bg-emerald-50 text-emerald-600'
-                  : 'bg-slate-100 text-slate-400',
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500',
               )}
             >
               <Icon className="h-4 w-4" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-slate-800">{step.label}</p>
-              <p className="text-xs text-slate-500">{step.sub}</p>
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{step.label}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{step.sub}</p>
             </div>
           </li>
         )
@@ -596,7 +596,7 @@ function Timeline({ booking }: { booking: import('@/types/transport').TransportB
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-red-700">Cancelled</p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {formatDateTime(booking.updated_at)}
             </p>
           </div>
@@ -650,7 +650,7 @@ function VehicleDialog({
       className="max-w-2xl"
     >
       <div className="space-y-4">
-        {isLoading && <p className="text-sm text-slate-500">Loading…</p>}
+        {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">Loading…</p>}
 
         {!isLoading && vehicles.length === 0 && (
           <EmptyState
@@ -671,13 +671,13 @@ function VehicleDialog({
                   className={cn(
                     'w-full rounded-md border px-4 py-3 text-left transition',
                     isSelected
-                      ? 'border-brand-500 bg-brand-50'
-                      : 'border-slate-200 hover:border-slate-400',
+                      ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/20'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-400',
                   )}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="font-mono text-sm font-semibold text-slate-800">
+                      <span className="font-mono text-sm font-semibold text-slate-800 dark:text-slate-100">
                         {v.registration_number}
                       </span>
                       {v.primary_driver_name && (
@@ -687,11 +687,11 @@ function VehicleDialog({
                         </span>
                       )}
                     </div>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
                       {v.vehicle_type_display}
                     </span>
                   </div>
-                  <div className="mt-1 flex gap-3 text-xs text-slate-500">
+                  <div className="mt-1 flex gap-3 text-xs text-slate-500 dark:text-slate-400">
                     <span>{v.tonnage} t</span>
                     <span className="capitalize">{v.category}</span>
                     <span className="capitalize">{v.make}</span>
@@ -765,7 +765,7 @@ function DriverDialog({
       className="max-w-xl"
     >
       <div className="space-y-4">
-        {isLoading && <p className="text-sm text-slate-500">Loading…</p>}
+        {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">Loading…</p>}
 
         {!isLoading && drivers.length === 0 && (
           <EmptyState
@@ -786,12 +786,12 @@ function DriverDialog({
                   className={cn(
                     'w-full rounded-md border px-4 py-3 text-left transition',
                     isSelected
-                      ? 'border-brand-500 bg-brand-50'
-                      : 'border-slate-200 hover:border-slate-400',
+                      ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/20'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-400',
                   )}
                 >
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-slate-800">
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
                       {d.full_name}
                     </p>
                     {d.has_psv ? (
@@ -800,14 +800,14 @@ function DriverDialog({
                         PSV
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                      <span className="inline-flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500">
                         <ShieldOff className="h-3.5 w-3.5" />
                         No PSV
                       </span>
                     )}
                   </div>
                   <div className="mt-1 flex items-center gap-2">
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
                       {d.license_number}
                     </span>
                     <span className="text-slate-300">·</span>
@@ -815,7 +815,7 @@ function DriverDialog({
                       {d.class_codes.map((c) => (
                         <span
                           key={c}
-                          className="inline-flex rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-xs font-medium text-slate-700"
+                          className="inline-flex rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-1.5 py-0.5 font-mono text-xs font-medium text-slate-700 dark:text-slate-300"
                         >
                           {c}
                         </span>
@@ -924,7 +924,7 @@ function TrailerDialog({
       className="max-w-xl"
     >
       <div className="space-y-4">
-        {isLoading && <p className="text-sm text-slate-500">Loading…</p>}
+        {isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">Loading…</p>}
 
         {!isLoading && trailers.length === 0 && (
           <EmptyState
@@ -945,8 +945,8 @@ function TrailerDialog({
                   className={cn(
                     'flex w-full items-center gap-3 rounded-md border px-4 py-3 text-left transition',
                     isSelected
-                      ? 'border-brand-500 bg-brand-50'
-                      : 'border-slate-200 hover:border-slate-400',
+                      ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/20'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-400',
                   )}
                 >
                   <span
@@ -965,14 +965,14 @@ function TrailerDialog({
                   </span>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-sm font-semibold text-slate-800">
+                      <span className="font-mono text-sm font-semibold text-slate-800 dark:text-slate-100">
                         {t.registration_number}
                       </span>
-                      <span className="text-sm text-slate-600">
+                      <span className="text-sm text-slate-600 dark:text-slate-300">
                         {t.tonnage} t
                       </span>
                     </div>
-                    <div className="mt-0.5 text-xs text-slate-500">
+                    <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                       {t.make} · {t.category}
                     </div>
                   </div>
@@ -983,20 +983,20 @@ function TrailerDialog({
         )}
 
         {/* Capacity summary */}
-        <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm">
+        <div className="rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3 text-sm">
           <div className="flex justify-between">
-            <span className="text-slate-500">Selected trailers</span>
-            <span className="font-medium text-slate-800">{trailerCount} / 2</span>
+            <span className="text-slate-500 dark:text-slate-400">Selected trailers</span>
+            <span className="font-medium text-slate-800 dark:text-slate-100">{trailerCount} / 2</span>
           </div>
           <div className="mt-1 flex justify-between">
-            <span className="text-slate-500">Trailer capacity</span>
-            <span className="font-medium text-slate-800">
+            <span className="text-slate-500 dark:text-slate-400">Trailer capacity</span>
+            <span className="font-medium text-slate-800 dark:text-slate-100">
               {trailerCapacity.toFixed(2)} t
             </span>
           </div>
           <div className="mt-1 flex justify-between">
-            <span className="text-slate-500">Cargo weight</span>
-            <span className="font-medium text-slate-800">
+            <span className="text-slate-500 dark:text-slate-400">Cargo weight</span>
+            <span className="font-medium text-slate-800 dark:text-slate-100">
               {cargoT.toFixed(2)} t
             </span>
           </div>

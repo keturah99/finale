@@ -178,7 +178,7 @@ export function PayrollRunDetailPage() {
       <div>
         <button
           onClick={() => navigate('/payroll/runs')}
-          className="mb-2 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
+          className="mb-2 inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to runs
@@ -239,11 +239,11 @@ export function PayrollRunDetailPage() {
       {/* Records table */}
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             Payroll Records
           </h2>
           {records.length > 0 && (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Total deductions:{' '}
               <span className="font-semibold text-red-600">
                 {formatK(totals.deductions)}
@@ -303,12 +303,12 @@ function TotalCard({
   tone?: 'default' | 'positive'
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
-      <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
+    <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
+      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
       <p
         className={cn(
           'mt-1 text-lg font-semibold',
-          tone === 'positive' ? 'text-emerald-700' : 'text-slate-800',
+          tone === 'positive' ? 'text-emerald-700' : 'text-slate-800 dark:text-slate-100',
         )}
       >
         {value}

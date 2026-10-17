@@ -102,7 +102,7 @@ export function StockOutPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Issue stock to sales or direct buyers. Stock level is decremented automatically.
         </p>
         <WriteOnly>
@@ -276,7 +276,7 @@ function StockOutDialog({
             className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${
               exceeds
                 ? 'border-red-200 bg-red-50 text-red-700'
-                : 'border-slate-200 bg-slate-50 text-slate-600'
+                : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300'
             }`}
           >
             <AlertCircle className="h-4 w-4" />
@@ -301,7 +301,7 @@ function StockOutDialog({
             control={control}
             render={({ field }) => (
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Unit Value <span className="text-red-500">*</span>
                 </label>
                 <CurrencyInput
@@ -319,9 +319,9 @@ function StockOutDialog({
           />
         </div>
 
-        <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
-          <span className="text-slate-500">Total value: </span>
-          <span className="font-semibold text-slate-800">
+        <div className="rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-3 py-2 text-sm">
+          <span className="text-slate-500 dark:text-slate-400">Total value: </span>
+          <span className="font-semibold text-slate-800 dark:text-slate-100">
             {formatK(computedTotal)}
           </span>
         </div>

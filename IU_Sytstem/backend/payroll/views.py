@@ -1,8 +1,8 @@
 from django.http import HttpResponse
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 
 from core.permissions import RolePermission
 from core.roles import PAYROLL_OFFICER
@@ -12,9 +12,14 @@ from .serializers import (
     SalaryStructureSerializer, PayrollRunSerializer,
     PayrollRecordSerializer, BankExportSerializer,
 )
-from .services import run_payroll, generate_payslip_pdf, generate_bank_export_csv
+from .services import (
+    run_payroll, generate_payslip_pdf, generate_bank_export_csv,
+)
 
-from .services import generate_payslip_pdf, run_payroll, generate_bank_export_csv
+
+# ---------------------------------------------------------------------------
+# Salary structures
+# ---------------------------------------------------------------------------
 
 class SalaryStructureViewSet(viewsets.ModelViewSet):
     queryset = SalaryStructure.objects.select_related('employee').all()
@@ -31,6 +36,10 @@ class SalaryStructureViewSet(viewsets.ModelViewSet):
         return qs
 
 
+# ---------------------------------------------------------------------------
+# Payroll runs
+# ---------------------------------------------------------------------------
+
 class PayrollRunViewSet(viewsets.ModelViewSet):
     queryset = PayrollRun.objects.all()
     serializer_class = PayrollRunSerializer
@@ -41,12 +50,21 @@ class PayrollRunViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def process(self, request, pk=None):
         run = self.get_object()
+
         if run.status == 'completed':
-            return Response({'error': 'Payroll already completed'}, status=400)
+            return Response(
+                {'error': 'Payroll has already been completed for this run'},
+                status=400,
+            )
+
         count = run_payroll(run, processed_by=request.user)
+        run.refresh_from_db()
+
         return Response({
-            'status': 'completed',
+            'status': run.status,
+            'period_label': run.period_label,
             'records_created': count,
+            'processed_at': run.processed_at,
         })
 
     @action(detail=True, methods=['get'])
@@ -58,14 +76,18 @@ class PayrollRunViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def export_bank(self, request, pk=None):
         run = self.get_object()
+
         if run.status != 'completed':
-            return Response({'error': 'Run payroll before exporting'}, status=400)
+            return Response(
+                {'error': 'Run payroll before exporting bank file'},
+                status=400,
+            )
 
         csv_text = generate_bank_export_csv(run)
         filename = f"bank_export_{run.period_label}.csv".replace(' ', '_')
-        total = sum(r.net_salary for r in run.records.all())
+        total = sum((r.net_salary or 0) for r in run.records.all())
 
-        export = BankExport.objects.create(
+        BankExport.objects.create(
             payroll_run=run,
             file_name=filename,
             total_amount=total,
@@ -75,19 +97,16 @@ class PayrollRunViewSet(viewsets.ModelViewSet):
 
         response = HttpResponse(csv_text, content_type='text/csv')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        response['X-Export-Id'] = export.id
         return response
 
 
-class PayrollRecordViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    Read-only view over PayrollRecord.
+# ---------------------------------------------------------------------------
+# Payroll records
+# ---------------------------------------------------------------------------
 
-    A payroll officer sees all records.
-    Any authenticated user can fetch their own via the `mine` action.
-    """
+class PayrollRecordViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = PayrollRecord.objects.select_related(
-        'employee', 'payroll_run'
+        'employee', 'payroll_run',
     ).all()
     serializer_class = PayrollRecordSerializer
     permission_classes = [RolePermission]
@@ -100,7 +119,6 @@ class PayrollRecordViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def mine(self, request):
-        """Return only the records belonging to the current user."""
         qs = self.get_queryset().filter(employee=request.user)
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
@@ -111,7 +129,6 @@ class PayrollRecordViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def payslip(self, request, pk=None):
-        """Download a PDF payslip for a single record."""
         record = self.get_object()
         user = request.user
 
@@ -134,8 +151,32 @@ class PayrollRecordViewSet(viewsets.ReadOnlyModelViewSet):
         return response
 
 
+# ---------------------------------------------------------------------------
+# Bank exports history
+# ---------------------------------------------------------------------------
+
 class BankExportViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = BankExport.objects.all()
+    queryset = BankExport.objects.select_related(
+        'payroll_run', 'exported_by',
+    ).all()
     serializer_class = BankExportSerializer
     permission_classes = [RolePermission]
     read_roles = [PAYROLL_OFFICER]
+
+    @action(detail=True, methods=['get'])
+    def download(self, request, pk=None):
+        """
+        Regenerate and download the CSV for a historical bank export.
+
+        Because the source data (the payroll run's records) is still
+        available, we rebuild the file on demand rather than storing
+        a copy on disk.
+        """
+        export = self.get_object()
+        csv_text = generate_bank_export_csv(export.payroll_run)
+
+        response = HttpResponse(csv_text, content_type='text/csv')
+        response['Content-Disposition'] = (
+            f'attachment; filename="{export.file_name}"'
+        )
+        return response

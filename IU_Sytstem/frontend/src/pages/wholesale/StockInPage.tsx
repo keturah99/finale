@@ -120,7 +120,7 @@ export function StockInPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Record stock arriving at a wholesale outlet.
         </p>
         <WriteOnly>
@@ -297,7 +297,7 @@ function StockInDialog({
             control={control}
             render={({ field }) => (
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Unit Cost <span className="text-red-500">*</span>
                 </label>
                 <CurrencyInput
@@ -315,9 +315,9 @@ function StockInDialog({
           />
         </div>
 
-        <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
-          <span className="text-slate-500">Total value: </span>
-          <span className="font-semibold text-slate-800">
+        <div className="rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-3 py-2 text-sm">
+          <span className="text-slate-500 dark:text-slate-400">Total value: </span>
+          <span className="font-semibold text-slate-800 dark:text-slate-100">
             {formatK(computedTotal)}
           </span>
         </div>

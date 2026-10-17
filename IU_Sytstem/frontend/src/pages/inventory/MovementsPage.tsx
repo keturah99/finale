@@ -102,7 +102,7 @@ export function MovementsPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Every stock-in, stock-out, and adjustment across all departments.
         </p>
         <WriteOnly>

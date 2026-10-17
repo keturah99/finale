@@ -9,3 +9,5 @@ redis
 reportlab
 openpyxl
 gunicorn
+pytest
+pytest-django

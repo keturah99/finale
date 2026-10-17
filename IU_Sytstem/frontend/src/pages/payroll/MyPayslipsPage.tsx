@@ -48,7 +48,7 @@ export function MyPayslipsPage() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-500 dark:text-slate-400">
         Your payslips appear here after each payroll run is processed. You can download the PDF anytime.
       </p>
 

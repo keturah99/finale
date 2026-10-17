@@ -35,6 +35,8 @@ SEED_USERS = [
     ('poffic',      'payroll',    None,               ['payroll_officer']),
     ('analyst',     'reporting',  None,               ['reporting_analyst']),
     ('auditor',     'core',       None,               ['auditor']),
+    ('fofficer', 'core', None, ['finance_officer']),
+    ('fmgr',     'core', None, ['finance_manager']),
 ]
 
 

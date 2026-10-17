@@ -91,10 +91,10 @@ export function BookingsPage() {
         size: 160,
         Cell: ({ row }) => (
           <div>
-            <p className="font-medium text-slate-800">
+            <p className="font-medium text-slate-800 dark:text-slate-100">
               {row.original.customer_name}
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {row.original.customer_phone}
             </p>
           </div>
@@ -107,8 +107,8 @@ export function BookingsPage() {
         enableSorting: false,
         Cell: ({ row }) => (
           <div className="text-sm">
-            <p className="text-slate-800">{row.original.pickup_location}</p>
-            <p className="text-xs text-slate-500">
+            <p className="text-slate-800 dark:text-slate-100">{row.original.pickup_location}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               → {row.original.delivery_location}
             </p>
           </div>
@@ -139,7 +139,7 @@ export function BookingsPage() {
               {cell.getValue<string>()}
             </span>
           ) : (
-            <span className="text-slate-400">—</span>
+            <span className="text-slate-400 dark:text-slate-500">—</span>
           ),
       },
       {
@@ -186,7 +186,7 @@ export function BookingsPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Customer transport requests. Assign vehicles, drivers, and trailers
           from the dispatch view.
         </p>
@@ -291,7 +291,7 @@ function NewBookingDialog({
       className="max-w-2xl"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           Customer
         </h3>
         <div className="grid grid-cols-2 gap-3">
@@ -318,7 +318,7 @@ function NewBookingDialog({
           {...register('customer_email')}
         />
 
-        <h3 className="pt-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <h3 className="pt-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           Route
         </h3>
         <div className="grid grid-cols-2 gap-3">
@@ -338,7 +338,7 @@ function NewBookingDialog({
           />
         </div>
 
-        <h3 className="pt-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <h3 className="pt-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           Cargo
         </h3>
         <FormField
@@ -369,7 +369,7 @@ function NewBookingDialog({
           />
         </div>
 
-        <h3 className="pt-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <h3 className="pt-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           Schedule & Pricing
         </h3>
         <div className="grid grid-cols-2 gap-3">
@@ -392,11 +392,11 @@ function NewBookingDialog({
           control={control}
           render={({ field }) => (
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Quoted Price (optional)
               </label>
               <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 dark:text-slate-400">
                   K
                 </span>
                 <Input

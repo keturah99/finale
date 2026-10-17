@@ -11,6 +11,8 @@ import {
   ClipboardList,
   FlaskConical,
   ExternalLink,
+  ClipboardCheck,
+  Banknote,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useRole } from '@/hooks/useRole'
@@ -24,23 +26,47 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-  { label: 'Inventory', to: '/inventory', icon: Package,
-    roles: ['inventory_manager', 'inventory_clerk'] },
-  { label: 'Production', to: '/supply-chain', icon: Warehouse,
-    roles: ['supply_chain_officer'] },
-  { label: 'Transport', to: '/transport', icon: Truck,
-    roles: ['transport_manager', 'transport_clerk'] },
-  { label: 'Wholesale', to: '/wholesale', icon: Store,
-    roles: ['wholesale_manager', 'wholesale_clerk', 'cashier'] },
-  { label: 'Payroll', to: '/payroll', icon: Wallet,
-    roles: ['payroll_officer'] },
-  { label: 'Reporting', to: '/reporting', icon: BarChart3,
+  {
+    label: 'Inventory', to: '/inventory', icon: Package,
+    roles: ['inventory_manager', 'inventory_clerk'],
+  },
+  {
+    label: 'Production', to: '/supply-chain/production', icon: FlaskConical,
+    roles: ['supply_chain_officer'],
+  },
+  {
+    label: 'Supply Chain', to: '/supply-chain', icon: Warehouse,
+    roles: ['supply_chain_officer'],
+  },
+  {
+    label: 'Transport', to: '/transport', icon: Truck,
+    roles: ['transport_manager', 'transport_clerk'],
+  },
+  {
+    label: 'Wholesale', to: '/wholesale', icon: Store,
+    roles: ['wholesale_manager', 'wholesale_clerk', 'cashier'],
+  },
+  {
+    label: 'Cashier', to: '/cashier', icon: Banknote,
+    roles: ['cashier'],
+  },
+  {
+    label: 'Finance', to: '/finance', icon: ClipboardCheck,
+    roles: ['finance_officer', 'finance_manager'],
+  },
+  {
+    label: 'Payroll', to: '/payroll', icon: Wallet,
+    roles: ['payroll_officer'],
+  },
+  {
+    label: 'Reporting', to: '/reporting', icon: BarChart3,
     roles: [
       'reporting_analyst', 'inventory_manager', 'transport_manager',
-      'supply_chain_officer', 'wholesale_manager', 'payroll_officer', 'auditor',
-    ] },
+      'supply_chain_officer', 'wholesale_manager', 'payroll_officer',
+      'finance_officer', 'finance_manager', 'auditor',
+    ],
+  },
   { label: 'Admin', to: '/admin', icon: Users },
-  { label: 'Playground', to: '/playground', icon: FlaskConical },
 ]
 
 export function Sidebar() {

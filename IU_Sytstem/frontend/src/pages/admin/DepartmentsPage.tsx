@@ -62,7 +62,7 @@ export function DepartmentsPage() {
         enableColumnFilter: false,
         Cell: ({ row }) => (
           <DropdownMenu trigger={
-            <span className="cursor-pointer rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700">•••</span>
+            <span className="cursor-pointer rounded p-1 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700">•••</span>
           }>
             <DropdownItem onClick={() => { setEditing(row.original); setDialogOpen(true) }}>
               <span className="flex items-center gap-2"><Pencil className="h-3.5 w-3.5" /> Edit</span>
@@ -99,7 +99,7 @@ export function DepartmentsPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Organizational units used to categorize users and products.
         </p>
         <WriteOnly>

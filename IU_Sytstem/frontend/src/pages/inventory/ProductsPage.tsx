@@ -97,7 +97,7 @@ export function ProductsPage() {
           const qty = row.original.stock?.quantity_on_hand ?? 0
           const low = qty <= row.original.reorder_level
           return (
-            <span className={low ? 'font-semibold text-amber-600' : 'font-semibold text-slate-800'}>
+            <span className={low ? 'font-semibold text-amber-600' : 'font-semibold text-slate-800 dark:text-slate-100'}>
               {qty}
             </span>
           )
@@ -119,7 +119,7 @@ export function ProductsPage() {
         Cell: ({ row }) => (
           <DropdownMenu
             trigger={
-              <span className="cursor-pointer rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+              <span className="cursor-pointer rounded p-1 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700">
                 •••
               </span>
             }
@@ -172,7 +172,7 @@ export function ProductsPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Central product catalogue shared by all modules.
         </p>
         <WriteOnly>
@@ -280,7 +280,7 @@ function ProductDialog({
         <div className="grid grid-cols-2 gap-3">
           <Controller name="unit_price" control={control} render={({ field }) => (
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Unit Price <span className="text-red-500">*</span>
               </label>
               <CurrencyInput value={field.value} onChange={field.onChange}
@@ -292,7 +292,7 @@ function ProductDialog({
             error={errors.reorder_level}
             {...register('reorder_level', { valueAsNumber: true })} />
         </div>
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
           <input type="checkbox" className="h-4 w-4 rounded border-slate-300" {...register('is_active')} />
           Active
         </label>

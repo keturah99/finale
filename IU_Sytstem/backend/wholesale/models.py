@@ -5,10 +5,11 @@ Covers:
   - Wholesale outlets
   - Per-outlet stock levels
   - Stock-in and stock-out movements
-  - Damage / loss records
+  - Damage / loss records (finance-reviewable)
   - Inter-wholesale transfers
   - Weekly sales cycles (with auto-numbering)
   - Pending collections (hardware laybys)
+  - Cash-in, expense, and damage sub-records (finance-reviewable)
 """
 
 from decimal import Decimal, InvalidOperation
@@ -16,6 +17,8 @@ from decimal import Decimal, InvalidOperation
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+
+from finance.models import FinanceReviewableModel
 
 
 # ---------------------------------------------------------------------------
@@ -227,10 +230,10 @@ class WholesaleStockOut(models.Model):
 
 
 # ---------------------------------------------------------------------------
-# Damages at wholesale storage level
+# Damages at wholesale storage level (finance-reviewable)
 # ---------------------------------------------------------------------------
 
-class WholesaleDamage(models.Model):
+class WholesaleDamage(FinanceReviewableModel):
     """Damaged or lost stock at the wholesale storage level."""
     wholesale = models.ForeignKey(
         Wholesale, on_delete=models.PROTECT, related_name='damages',
@@ -269,10 +272,12 @@ class WholesaleDamage(models.Model):
 
     def save(self, *args, **kwargs):
         from .services import sync_damage
+        from finance.services import compute_damage_flags
 
         self.total_loss_value = (
             to_decimal(self.selling_price) * (self.quantity or 0)
         )
+        self.flags = compute_damage_flags(self)
 
         old_qty = 0
         if self.pk:
@@ -452,7 +457,17 @@ class WeeklySales(models.Model):
     def total_cashed(self):
         from django.db.models import Sum
         return (
-            self.cash_ins.aggregate(t=Sum('amount'))['t']
+            self.cash_ins.filter(finance_status='approved')
+            .aggregate(t=Sum('amount'))['t']
+            or Decimal('0.00')
+        )
+
+    @property
+    def total_cashed_pending(self):
+        from django.db.models import Sum
+        return (
+            self.cash_ins.exclude(finance_status='approved')
+            .aggregate(t=Sum('amount'))['t']
             or Decimal('0.00')
         )
 
@@ -460,7 +475,17 @@ class WeeklySales(models.Model):
     def total_expenses(self):
         from django.db.models import Sum
         return (
-            self.expenses.aggregate(t=Sum('amount'))['t']
+            self.expenses.filter(finance_status='approved')
+            .aggregate(t=Sum('amount'))['t']
+            or Decimal('0.00')
+        )
+
+    @property
+    def total_expenses_pending(self):
+        from django.db.models import Sum
+        return (
+            self.expenses.exclude(finance_status='approved')
+            .aggregate(t=Sum('amount'))['t']
             or Decimal('0.00')
         )
 
@@ -468,7 +493,17 @@ class WeeklySales(models.Model):
     def total_damages_value(self):
         from django.db.models import Sum
         return (
-            self.damages.aggregate(t=Sum('total_loss_value'))['t']
+            self.damages.filter(finance_status='approved')
+            .aggregate(t=Sum('total_loss_value'))['t']
+            or Decimal('0.00')
+        )
+
+    @property
+    def total_damages_value_pending(self):
+        from django.db.models import Sum
+        return (
+            self.damages.exclude(finance_status='approved')
+            .aggregate(t=Sum('total_loss_value'))['t']
             or Decimal('0.00')
         )
 
@@ -487,10 +522,10 @@ def _next_week_number(year, wholesale):
 
 
 # ---------------------------------------------------------------------------
-# Weekly sales — sub-records
+# Weekly sales — sub-records (finance-reviewable)
 # ---------------------------------------------------------------------------
 
-class WeeklySalesCashIn(models.Model):
+class WeeklySalesCashIn(FinanceReviewableModel):
     """Cash received during a weekly sales period."""
     weekly_sales = models.ForeignKey(
         WeeklySales, on_delete=models.CASCADE, related_name='cash_ins',
@@ -514,8 +549,13 @@ class WeeklySalesCashIn(models.Model):
         if self.amount is not None and self.amount <= 0:
             raise ValidationError({'amount': 'Amount must be greater than zero.'})
 
+    def save(self, *args, **kwargs):
+        from finance.services import compute_cash_in_flags
+        self.flags = compute_cash_in_flags(self)
+        super().save(*args, **kwargs)
 
-class WeeklySalesExpense(models.Model):
+
+class WeeklySalesExpense(FinanceReviewableModel):
     """Expenses incurred during a weekly sales period."""
     weekly_sales = models.ForeignKey(
         WeeklySales, on_delete=models.CASCADE, related_name='expenses',
@@ -538,8 +578,13 @@ class WeeklySalesExpense(models.Model):
         if self.amount is not None and self.amount <= 0:
             raise ValidationError({'amount': 'Amount must be greater than zero.'})
 
+    def save(self, *args, **kwargs):
+        from finance.services import compute_expense_flags
+        self.flags = compute_expense_flags(self)
+        super().save(*args, **kwargs)
 
-class WeeklySalesDamage(models.Model):
+
+class WeeklySalesDamage(FinanceReviewableModel):
     """Damages that occur during a weekly sales period."""
     weekly_sales = models.ForeignKey(
         WeeklySales, on_delete=models.CASCADE, related_name='damages',
@@ -577,9 +622,11 @@ class WeeklySalesDamage(models.Model):
             })
 
     def save(self, *args, **kwargs):
+        from finance.services import compute_damage_flags
         self.total_loss_value = (
             to_decimal(self.selling_price) * (self.quantity or 0)
         )
+        self.flags = compute_damage_flags(self)
         super().save(*args, **kwargs)
 
 

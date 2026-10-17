@@ -28,13 +28,13 @@ export function ReportLogsPage() {
         Cell: ({ cell }) => formatDateTime(cell.getValue<string>()) },
       { accessorKey: 'report_type', header: 'Report', size: 220,
         Cell: ({ cell }) => (
-          <span className="font-medium text-slate-800">
+          <span className="font-medium text-slate-800 dark:text-slate-100">
             {cell.getValue<string>().replace(/_/g, ' ')}
           </span>
         ) },
       { accessorKey: 'report_format', header: 'Format', size: 100,
         Cell: ({ cell }) => (
-          <span className="inline-flex rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-xs font-medium uppercase text-slate-700">
+          <span className="inline-flex rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-1.5 py-0.5 text-xs font-medium uppercase text-slate-700 dark:text-slate-300">
             {cell.getValue<string>()}
           </span>
         ) },
@@ -43,7 +43,7 @@ export function ReportLogsPage() {
         Cell: ({ cell }) => cell.getValue<string | null>() ?? '—' },
       { accessorKey: 'file_name', header: 'File', size: 280,
         Cell: ({ cell }) => (
-          <span className="font-mono text-xs text-slate-600">
+          <span className="font-mono text-xs text-slate-600 dark:text-slate-300">
             {cell.getValue<string>()}
           </span>
         ) },
@@ -53,7 +53,7 @@ export function ReportLogsPage() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-500 dark:text-slate-400">
         Every report generated is logged here with the user, format, and row count.
       </p>
 

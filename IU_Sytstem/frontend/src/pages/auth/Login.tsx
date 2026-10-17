@@ -44,7 +44,7 @@ export function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 dark:bg-slate-950">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-800/50 px-4 dark:bg-slate-950">
       <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <div className="mb-6 flex flex-col items-center">
           <ClipboardList className="mb-2 h-10 w-10 text-brand-500 dark:text-brand-400" />
@@ -67,8 +67,8 @@ export function Login() {
               autoFocus
               {...register('username')}
               className={cn(
-                'w-full rounded-md border bg-white px-3 py-2 text-sm outline-none transition',
-                'text-slate-900 placeholder:text-slate-400',
+                'w-full rounded-md border bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none transition',
+                'text-slate-900 dark:text-slate-100 placeholder:text-slate-400',
                 'focus:border-brand-500 focus:ring-1 focus:ring-brand-500',
                 'dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500',
                 errors.username
@@ -92,8 +92,8 @@ export function Login() {
               autoComplete="current-password"
               {...register('password')}
               className={cn(
-                'w-full rounded-md border bg-white px-3 py-2 text-sm outline-none transition',
-                'text-slate-900 placeholder:text-slate-400',
+                'w-full rounded-md border bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none transition',
+                'text-slate-900 dark:text-slate-100 placeholder:text-slate-400',
                 'focus:border-brand-500 focus:ring-1 focus:ring-brand-500',
                 'dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500',
                 errors.password

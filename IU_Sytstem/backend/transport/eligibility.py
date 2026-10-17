@@ -41,26 +41,18 @@ def required_class_for(vehicle) -> str:
     return 'C'
 
 
-def is_driver_eligible(driver, vehicle, booking=None):
-    """
-    Full eligibility check for a driver on a given vehicle.
-
-    Returns (ok: bool, reason: str). The reason string is user-facing;
-    return it verbatim in API error responses.
-
-    Order matters:
-        1. License expiry
-        2. PSV gate (public-category vehicles require PSV endorsement)
-        3. License class coverage
-        4. DG endorsement if the booking carries dangerous goods
-        5. Availability (driver and vehicle both 'available')
-        6. Tonnage fits the booking's cargo
-    """
+def is_driver_eligible(
+    driver,
+    vehicle,
+    booking=None,
+    skip_vehicle_availability=False,
+):
+    
     # 1. License expiry
     if driver.license_expiry and driver.license_expiry < date.today():
         return False, "Driver's license is expired"
 
-    # 2. PSV gate — HARD RULE, checked before class coverage
+    # 2. PSV gate — HARD RULE
     if vehicle.category == 'public' and not driver.has_psv:
         return False, "PSV endorsement required for public-category vehicles"
 
@@ -78,7 +70,7 @@ def is_driver_eligible(driver, vehicle, booking=None):
     # 5. Availability
     if driver.status != 'available':
         return False, f"Driver is not available (status: {driver.status})"
-    if vehicle.status != 'available':
+    if not skip_vehicle_availability and vehicle.status != 'available':
         return False, f"Vehicle is not available (status: {vehicle.status})"
 
     # 6. Tonnage vs cargo
@@ -91,7 +83,6 @@ def is_driver_eligible(driver, vehicle, booking=None):
             )
 
     return True, "OK"
-
 
 # ---------------------------------------------------------------------------
 # Internal helpers

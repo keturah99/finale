@@ -65,7 +65,7 @@ export function StockLevelsPage() {
               ? 'text-red-600 font-semibold'
               : qty <= 20
                 ? 'text-amber-600 font-semibold'
-                : 'text-slate-800 font-semibold'
+                : 'text-slate-800 dark:text-slate-100 font-semibold'
           return <span className={color}>{qty.toLocaleString()}</span>
         },
       },
@@ -140,7 +140,7 @@ export function StockLevelsPage() {
           className="w-64"
         />
 
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
           <input
             type="checkbox"
             checked={lowOnly}
@@ -178,16 +178,16 @@ function StatCard({
   tone?: 'default' | 'warning'
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5">
+    <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
       <div className="flex items-center gap-2">
         <Icon
           className={
-            tone === 'warning' ? 'h-4 w-4 text-amber-500' : 'h-4 w-4 text-slate-400'
+            tone === 'warning' ? 'h-4 w-4 text-amber-500' : 'h-4 w-4 text-slate-400 dark:text-slate-500'
           }
         />
-        <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
+        <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
       </div>
-      <p className="mt-2 text-2xl font-semibold text-slate-800">{value}</p>
+      <p className="mt-2 text-2xl font-semibold text-slate-800 dark:text-slate-100">{value}</p>
     </div>
   )
 }

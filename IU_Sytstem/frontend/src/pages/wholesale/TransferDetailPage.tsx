@@ -96,7 +96,7 @@ export function TransferDetailPage() {
       <div>
         <button
           onClick={() => navigate('/wholesale/transfers')}
-          className="mb-2 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
+          className="mb-2 inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to transfers
@@ -141,8 +141,8 @@ export function TransferDetailPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Left: transfer details */}
         <div className="space-y-4 lg:col-span-2">
-          <div className="rounded-lg border border-slate-200 bg-white p-5">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Transfer Details
             </h2>
 
@@ -165,8 +165,8 @@ export function TransferDetailPage() {
             </dl>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-white p-5">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Lifecycle
             </h2>
             <Timeline transfer={transfer} />
@@ -175,23 +175,23 @@ export function TransferDetailPage() {
 
         {/* Right: summary card */}
         <div className="space-y-4">
-          <div className="rounded-lg border border-slate-200 bg-white p-5">
-            <div className="flex items-center gap-2 text-slate-500">
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
               <Package className="h-4 w-4" />
               <p className="text-xs uppercase tracking-wide">Stock Effect</p>
             </div>
             <div className="mt-4 space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-slate-500">Source decremented</span>
-                <span className="font-medium text-slate-800">
+                <span className="text-slate-500 dark:text-slate-400">Source decremented</span>
+                <span className="font-medium text-slate-800 dark:text-slate-100">
                   {transfer.status === 'in_transit' || transfer.status === 'received'
                     ? `${transfer.quantity} units`
                     : '—'}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Destination incremented</span>
-                <span className="font-medium text-slate-800">
+                <span className="text-slate-500 dark:text-slate-400">Destination incremented</span>
+                <span className="font-medium text-slate-800 dark:text-slate-100">
                   {transfer.status === 'received'
                     ? `${transfer.quantity} units`
                     : '—'}
@@ -234,8 +234,8 @@ function InfoRow({
 }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wide text-slate-500">{label}</dt>
-      <dd className={bold ? 'mt-1 text-base font-semibold text-slate-800' : 'mt-1 text-sm text-slate-800'}>
+      <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</dt>
+      <dd className={bold ? 'mt-1 text-base font-semibold text-slate-800 dark:text-slate-100' : 'mt-1 text-sm text-slate-800 dark:text-slate-100'}>
         {value}
       </dd>
     </div>
@@ -282,19 +282,19 @@ function Timeline({ transfer }: { transfer: import('@/types/wholesale').Transfer
               className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-full ${
                 step.done
                   ? 'bg-emerald-50 text-emerald-600'
-                  : 'bg-slate-100 text-slate-400'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
               }`}
             >
               <Icon className="h-4 w-4" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-slate-800">{step.label}</p>
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{step.label}</p>
               {step.done && step.at ? (
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {step.by ?? 'system'} · {formatDateTime(step.at)}
                 </p>
               ) : (
-                <p className="text-xs text-slate-400">Pending</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Pending</p>
               )}
             </div>
           </li>
@@ -308,7 +308,7 @@ function Timeline({ transfer }: { transfer: import('@/types/wholesale').Transfer
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-red-700">Cancelled</p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {transfer.cancelled_by_name ?? 'system'} ·{' '}
               {formatDateTime(transfer.cancelled_at)}
             </p>

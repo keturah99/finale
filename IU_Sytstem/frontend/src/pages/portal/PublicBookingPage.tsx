@@ -119,7 +119,7 @@ export function PublicBookingPage() {
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
             Booking received
           </h1>
-          <p className="mt-2 text-slate-600 dark:text-slate-400">
+          <p className="mt-2 text-slate-600 dark:text-slate-300 dark:text-slate-400">
             Thank you. Our team will call you within 24 hours to confirm details and pricing.
           </p>
 
@@ -186,7 +186,7 @@ export function PublicBookingPage() {
                   className={cn(
                     'mt-2 hidden text-xs font-medium sm:block',
                     isActive || isDone
-                      ? 'text-slate-800 dark:text-slate-200'
+                      ? 'text-slate-800 dark:text-slate-100 dark:text-slate-200'
                       : 'text-slate-400 dark:text-slate-500',
                   )}
                 >
@@ -349,7 +349,7 @@ function StepContactReview({
         <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
           Review your booking
         </h3>
-        <div className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-slate-50 dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-800/50">
+        <div className="divide-y divide-slate-100 dark:divide-slate-800 rounded-lg border border-slate-200 bg-slate-50 dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-800/50">
           <SummaryRow label="From" value={values.pickup_location || '—'} />
           <SummaryRow label="To" value={values.delivery_location || '—'} />
           <SummaryRow label="Cargo" value={values.cargo_description || '—'} />
@@ -400,7 +400,7 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4 px-4 py-3 text-sm">
       <span className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</span>
-      <span className="text-right text-slate-800 dark:text-slate-200">{value}</span>
+      <span className="text-right text-slate-800 dark:text-slate-100 dark:text-slate-200">{value}</span>
     </div>
   )
 }

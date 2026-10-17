@@ -113,7 +113,7 @@ export function VehiclesPage() {
         header: 'Registration',
         size: 140,
         Cell: ({ cell }) => (
-          <span className="font-mono font-semibold text-slate-800">
+          <span className="font-mono font-semibold text-slate-800 dark:text-slate-100">
             {cell.getValue<string>()}
           </span>
         ),
@@ -156,7 +156,7 @@ export function VehiclesPage() {
         Cell: ({ row }) => (
           <DropdownMenu
             trigger={
-              <span className="cursor-pointer rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+              <span className="cursor-pointer rounded p-1 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700">
                 •••
               </span>
             }
@@ -229,7 +229,7 @@ export function VehiclesPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Company fleet. Each vehicle can have a primary driver for auto-pairing.
         </p>
         <WriteOnly>
@@ -377,7 +377,7 @@ function VehicleDialog({
             control={control}
             render={({ field }) => (
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Registration <span className="text-red-500">*</span>
                 </label>
                 <RegNumberInput
@@ -415,7 +415,7 @@ function VehicleDialog({
             control={control}
             render={({ field }) => (
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Tonnage <span className="text-red-500">*</span>
                 </label>
                 <Input

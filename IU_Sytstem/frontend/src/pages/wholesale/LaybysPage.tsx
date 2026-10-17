@@ -86,10 +86,10 @@ export function LaybysPage() {
         size: 180,
         Cell: ({ row }) => (
           <div>
-            <p className="font-medium text-slate-800">
+            <p className="font-medium text-slate-800 dark:text-slate-100">
               {row.original.customer_name}
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {row.original.customer_phone || '—'}
             </p>
           </div>
@@ -150,7 +150,7 @@ export function LaybysPage() {
           row.original.status !== 'cancelled' ? (
             <DropdownMenu
               trigger={
-                <span className="cursor-pointer rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+                <span className="cursor-pointer rounded p-1 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700">
                   •••
                 </span>
               }
@@ -178,7 +178,7 @@ export function LaybysPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Hardware laybys — goods paid for but not yet collected.
         </p>
         <WriteOnly>
@@ -326,7 +326,7 @@ function CollectionDialog({
             control={control}
             render={({ field }) => (
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Total Price <span className="text-red-500">*</span>
                 </label>
                 <CurrencyInput
@@ -347,7 +347,7 @@ function CollectionDialog({
             control={control}
             render={({ field }) => (
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Amount Paid
                 </label>
                 <CurrencyInput

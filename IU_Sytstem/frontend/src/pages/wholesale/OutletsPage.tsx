@@ -87,7 +87,7 @@ export function OutletsPage() {
         Cell: ({ row }) => (
           <DropdownMenu
             trigger={
-              <span className="cursor-pointer rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+              <span className="cursor-pointer rounded p-1 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700">
                 •••
               </span>
             }
@@ -275,7 +275,7 @@ function OutletDialog({
             {...register('is_active')}
             className="h-4 w-4 rounded border-slate-300"
           />
-          <label htmlFor="is_active" className="text-sm text-slate-700">
+          <label htmlFor="is_active" className="text-sm text-slate-700 dark:text-slate-300">
             Active
           </label>
         </div>
